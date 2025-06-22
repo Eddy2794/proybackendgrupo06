@@ -1,4 +1,4 @@
-import * as profesorService from './profesor.service.js';
+import * as profesorService from '../service/profesor.service.js';
 
 export const createProfesor = async (req, res) => {
     try {

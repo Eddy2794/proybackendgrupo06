@@ -1,5 +1,5 @@
-import * as profesorRepository from './profesor-repository.js';
-import * as personaService from '../persona/persona.service.js';
+import * as profesorRepository from '../repository/profesor-repository.js';
+import * as personaService from '../../persona/persona.service.js';
 
 export const createProfesor = async ({ titulo, experiencia_anios, fecha_contratacion, salario, activo_laboral, personaData }) => {
     const persona = await personaService.createPersona(personaData);

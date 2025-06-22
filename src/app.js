@@ -4,7 +4,7 @@ import { applySecurity, csrfErrorHandler } from './middlewares/security.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import userRoutes from './modules/user/user.routes.js';
 import personaRoutes from './modules/persona/persona.routes.js';
-import profesorRoutes from './modules/profesor/profesor-routes.js';
+import profesorRoutes from './modules/profesor/routes/profesor-routes.js';
 import { setupSwagger } from './config/swagger.js';
 
 const app = express();

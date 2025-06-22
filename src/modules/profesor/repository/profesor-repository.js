@@ -1,4 +1,4 @@
-import Profesor from './profesor-model.js';
+import Profesor from '../model/profesor-model.js';
 
 export const create = async(data) => {
     const profesor = new Profesor(data);
