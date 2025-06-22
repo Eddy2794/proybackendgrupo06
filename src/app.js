@@ -4,6 +4,7 @@ import { applySecurity, csrfErrorHandler } from './middlewares/security.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import userRoutes from './modules/user/user.routes.js';
 import personaRoutes from './modules/persona/persona.routes.js';
+import profesorRoutes from './modules/profesor/profesor-routes.js';
 import { setupSwagger } from './config/swagger.js';
 
 const app = express();
@@ -16,6 +17,7 @@ applySecurity(app, false); // Deshabilitamos CSRF temporalmente
 // Rutas de la API
 app.use('/api/users', userRoutes);
 app.use('/api/personas', personaRoutes);
+app.use('/api/profesores', profesorRoutes);
 
 // Documentación Swagger
 setupSwagger(app);
