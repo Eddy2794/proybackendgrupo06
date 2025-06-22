@@ -1,7 +1,12 @@
 import { Router } from 'express';
-import * as personaController from './persona.controller.js';
-import * as personaValidation from './persona.validation.js';
-import { authMiddleware } from '../../middlewares/authMiddleware.js';
+import * as personaController from '../controller/persona.controller.js';
+import { authMiddleware } from '../../../middlewares/authMiddleware.js';
+import { validateSchema, validateObjectId } from '../validator/persona.middleware.js';
+import { 
+  createPersonaSchema, 
+  updatePersonaSchema, 
+  personaQuerySchema 
+} from '../validator/persona.validators.js';
 
 const router = Router();
 
@@ -192,7 +197,7 @@ const router = Router();
 router.post(
   '/',
   authMiddleware,
-  personaValidation.validateCreatePersona,
+  validateSchema(createPersonaSchema),
   personaController.createPersona
 );
 
@@ -265,7 +270,7 @@ router.post(
 router.get(
   '/',
   authMiddleware,
-  personaValidation.validateSearchPersonas,
+  validateSchema(personaQuerySchema, 'query'),
   personaController.getAllPersonas
 );
 
@@ -329,7 +334,6 @@ router.get(
 router.get(
   '/age-range',
   authMiddleware,
-  personaValidation.validateAgeRange,
   personaController.getPersonasByAge
 );
 
@@ -361,7 +365,7 @@ router.get(
 router.get(
   '/:id',
   authMiddleware,
-  personaValidation.validatePersonaId,
+  validateObjectId(),
   personaController.getPersonaById
 );
 
@@ -409,7 +413,8 @@ router.get(
 router.put(
   '/:id',
   authMiddleware,
-  personaValidation.validateUpdatePersona,
+  validateObjectId(),
+  validateSchema(updatePersonaSchema),
   personaController.updatePersona
 );
 
@@ -437,7 +442,7 @@ router.put(
 router.delete(
   '/:id',
   authMiddleware,
-  personaValidation.validatePersonaId,
+  validateObjectId(),
   personaController.deletePersona
 );
 
@@ -465,7 +470,7 @@ router.delete(
 router.patch(
   '/:id/activate',
   authMiddleware,
-  personaValidation.validatePersonaId,
+  validateObjectId(),
   personaController.activatePersona
 );
 

@@ -1,59 +1,55 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 
+// Constantes para el modelo
+const USER_ROLES = ['USER', 'ADMIN', 'MODERATOR'];
+const USER_STATES = ['ACTIVO', 'INACTIVO', 'SUSPENDIDO', 'PENDIENTE_VERIFICACION'];
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutos
+const BCRYPT_ROUNDS = 12;
+
 const userSchema = new mongoose.Schema({
   // Referencia a la persona (tabla padre)
   persona: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Persona',
-    required: true,
+    required: [true, 'La referencia a persona es requerida'],
     unique: true
   },
   
   // Datos específicos del usuario
   username: {
     type: String,
-    required: true,
+    required: [true, 'El username es requerido'],
     unique: true,
     trim: true,
-    minlength: 3,
-    maxlength: 30,
     lowercase: true,
-    validate: {
-      validator: function(v) {
-        return /^[a-z0-9_]+$/.test(v);
-      },
-      message: 'El username solo puede contener letras minúsculas, números y guiones bajos'
-    }
+    index: true
   },
-    password: {
+  
+  password: {
     type: String,
-    required: true,
-    minlength: 6,
-    validate: {
-      validator: function(v) {
-        // En ambiente de test, solo verificar longitud mínima
-        if (process.env.NODE_ENV === 'test') {
-          return v.length >= 6;
-        }
-        // En producción, validar que contenga al menos una letra y un número
-        return /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,}$/.test(v);
-      },
-      message: 'La contraseña debe tener al menos 6 caracteres'
-    }
+    required: [true, 'La contraseña es requerida']
   },
   
   // Configuraciones del usuario
   rol: {
     type: String,
-    enum: ['USER', 'ADMIN', 'MODERATOR'],
+    enum: {
+      values: USER_ROLES,
+      message: 'Rol no válido'
+    },
     default: 'USER'
   },
   
   estado: {
     type: String,
-    enum: ['ACTIVO', 'INACTIVO', 'SUSPENDIDO', 'PENDIENTE_VERIFICACION'],
-    default: 'PENDIENTE_VERIFICACION'
+    enum: {
+      values: USER_STATES,
+      message: 'Estado no válido'
+    },
+    default: 'ACTIVO',
+    index: true
   },
   
   configuraciones: {
@@ -77,13 +73,15 @@ const userSchema = new mongoose.Schema({
   
   // Información de autenticación
   ultimoLogin: {
-    type: Date
+    type: Date,
+    index: true
   },
   
   intentosLogin: {
     type: Number,
     default: 0,
-    max: 5
+    min: [0, 'Los intentos de login no pueden ser negativos'],
+    max: [MAX_LOGIN_ATTEMPTS, `No se pueden tener más de ${MAX_LOGIN_ATTEMPTS} intentos`]
   },
   
   bloqueadoHasta: {
@@ -110,18 +108,16 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Índices para búsquedas eficientes
-userSchema.index({ username: 1 });
-userSchema.index({ persona: 1 });
-userSchema.index({ estado: 1 });
-userSchema.index({ ultimoLogin: -1 });
+// Índices adicionales para búsquedas eficientes
+userSchema.index({ createdAt: -1 });
+userSchema.index({ 'configuraciones.perfilPublico': 1 });
 
 // Hash password antes de guardar
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   
   try {
-    const salt = await bcrypt.genSalt(12);
+    const salt = await bcrypt.genSalt(BCRYPT_ROUNDS);
     this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (error) {
@@ -143,9 +139,9 @@ userSchema.methods.isBlocked = function() {
 userSchema.methods.incrementLoginAttempts = async function() {
   this.intentosLogin += 1;
   
-  // Si alcanza el máximo de intentos, bloquear por 15 minutos
-  if (this.intentosLogin >= 5) {
-    this.bloqueadoHasta = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+  // Si alcanza el máximo de intentos, bloquear por el tiempo configurado
+  if (this.intentosLogin >= MAX_LOGIN_ATTEMPTS) {
+    this.bloqueadoHasta = new Date(Date.now() + LOCKOUT_DURATION);
   }
   
   return this.save();

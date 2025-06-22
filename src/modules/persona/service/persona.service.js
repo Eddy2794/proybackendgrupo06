@@ -1,4 +1,4 @@
-import * as personaRepo from './persona.repository.js';
+import * as personaRepo from '../repository/persona.repository.js';
 
 export const createPersona = async (personaData) => {
   // Validar que no exista una persona con el mismo documento

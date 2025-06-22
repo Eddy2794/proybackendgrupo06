@@ -1,4 +1,4 @@
-import Persona from './persona.model.js';
+import Persona from '../model/persona.model.js';
 
 export const create = async (data) => {
   const persona = new Persona(data);

@@ -1,117 +1,103 @@
 import mongoose from 'mongoose';
 
+// Constantes para el modelo
+const TIPOS_DOCUMENTO = ['DNI', 'PASAPORTE', 'CEDULA', 'CARNET_EXTRANJERIA'];
+const GENEROS = ['MASCULINO', 'FEMENINO', 'OTRO', 'PREFIERO_NO_DECIR'];
+const ESTADOS_PERSONA = ['ACTIVO', 'INACTIVO'];
+
 const personaSchema = new mongoose.Schema({
   nombres: {
     type: String,
-    required: true,
+    required: [true, 'Los nombres son requeridos'],
     trim: true,
-    minlength: 2,
-    maxlength: 50
+    index: true
   },
   apellidos: {
     type: String,
-    required: true,
+    required: [true, 'Los apellidos son requeridos'],
     trim: true,
-    minlength: 2,
-    maxlength: 50
+    index: true
   },
   tipoDocumento: {
     type: String,
-    required: true,
-    enum: ['DNI', 'PASAPORTE', 'CEDULA', 'CARNET_EXTRANJERIA'],
+    required: [true, 'El tipo de documento es requerido'],
+    enum: {
+      values: TIPOS_DOCUMENTO,
+      message: 'Tipo de documento no válido'
+    },
     default: 'DNI'
   },
   numeroDocumento: {
     type: String,
-    required: true,
+    required: [true, 'El número de documento es requerido'],
     unique: true,
     trim: true,
-    minlength: 6,
-    maxlength: 20
+    index: true
   },
   fechaNacimiento: {
     type: Date,
-    required: true,
-    validate: {
-      validator: function(fecha) {
-        const hoy = new Date();
-        const edad = hoy.getFullYear() - fecha.getFullYear();
-        return edad >= 13 && edad <= 120; // Edad mínima 13 años
-      },
-      message: 'La edad debe estar entre 13 y 120 años'
-    }
+    required: [true, 'La fecha de nacimiento es requerida']
   },
   genero: {
     type: String,
-    enum: ['MASCULINO', 'FEMENINO', 'OTRO', 'PREFIERO_NO_DECIR'],
-    required: true
+    enum: {
+      values: GENEROS,
+      message: 'Género no válido'
+    },
+    required: [true, 'El género es requerido']
   },
   telefono: {
     type: String,
-    trim: true,
-    minlength: 7,
-    maxlength: 15,
-    validate: {
-      validator: function(v) {
-        return /^\+?[\d\s\-\(\)]+$/.test(v);
-      },
-      message: 'Formato de teléfono inválido'
-    }
+    trim: true
   },
   email: {
     type: String,
-    required: true,
+    required: [true, 'El email es requerido'],
     unique: true,
     lowercase: true,
     trim: true,
-    validate: {
-      validator: function(v) {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-      },
-      message: 'Formato de email inválido'
-    }
+    index: true
   },
   direccion: {
     calle: {
       type: String,
-      trim: true,
-      maxlength: 100
+      trim: true
     },
     ciudad: {
       type: String,
-      trim: true,
-      maxlength: 50
+      trim: true
     },
     departamento: {
       type: String,
-      trim: true,
-      maxlength: 50
+      trim: true
     },
     codigoPostal: {
       type: String,
-      trim: true,
-      maxlength: 10
+      trim: true
     },
     pais: {
       type: String,
       trim: true,
-      maxlength: 50,
-      default: 'Perú'
+      default: 'Argentina'
     }
   },
   estado: {
     type: String,
-    enum: ['ACTIVO', 'INACTIVO', 'SUSPENDIDO'],
-    default: 'ACTIVO'
+    enum: {
+      values: ESTADOS_PERSONA,
+      message: 'Estado no válido'
+    },
+    default: 'ACTIVO',
+    index: true
   }
 }, {
   timestamps: true
 });
 
-// Índices para búsquedas eficientes
-personaSchema.index({ numeroDocumento: 1 });
-personaSchema.index({ email: 1 });
+// Índices adicionales para búsquedas eficientes (no duplicar los unique)
 personaSchema.index({ nombres: 1, apellidos: 1 });
+personaSchema.index({ estado: 1 });
+personaSchema.index({ fechaNacimiento: 1 });
 
 // Virtual para nombre completo
 personaSchema.virtual('nombreCompleto').get(function() {
