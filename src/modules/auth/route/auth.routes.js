@@ -3,6 +3,12 @@ import * as authController from '../controller/auth.controller.js';
 import { validateSchema } from '../validator/auth.middleware.js';
 import { registerSchema, loginSchema, changePasswordSchema } from '../validator/auth.validators.js';
 import { authMiddleware } from '../../../middlewares/authMiddleware.js';
+import { 
+  authRateLimit, 
+  validateTimestamp, 
+  validateClientToken,
+  validatePasswordHash 
+} from '../../../middlewares/advancedSecurity.js';
 
 const router = Router();
 
@@ -43,7 +49,14 @@ const router = Router();
  *         description: Error de validación
  */
 // Registro
-router.post('/register', validateSchema(registerSchema), authController.register);
+router.post('/register', 
+  authRateLimit,
+  validateTimestamp,
+  validateClientToken,
+  validatePasswordHash,
+  validateSchema(registerSchema), 
+  authController.register
+);
 
 /**
  * @swagger
@@ -81,7 +94,14 @@ router.post('/register', validateSchema(registerSchema), authController.register
  *         description: Credenciales inválidas
  */
 // Login
-router.post('/login', validateSchema(loginSchema), authController.login);
+router.post('/login', 
+  authRateLimit,
+  validateTimestamp,
+  validateClientToken,
+  validatePasswordHash,
+  validateSchema(loginSchema), 
+  authController.login
+);
 
 /**
  * @swagger
@@ -142,6 +162,14 @@ router.post('/logout', authMiddleware, authController.logout);
  *         description: No autorizado
  */
 // Cambio de contraseña (requiere autenticación)
-router.post('/change-password', authMiddleware, validateSchema(changePasswordSchema), authController.changePassword);
+router.post('/change-password', 
+  authRateLimit,
+  authMiddleware, 
+  validateTimestamp,
+  validateClientToken,
+  validatePasswordHash,
+  validateSchema(changePasswordSchema), 
+  authController.changePassword
+);
 
 export default router;

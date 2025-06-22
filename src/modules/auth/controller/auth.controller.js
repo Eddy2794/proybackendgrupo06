@@ -16,7 +16,7 @@ export const register = async (req, res, next) => {
 export const login = async (req, res, next) => {
   try {
     const result = await service.login(req.body);
-    return res.success('Login exitoso', {
+    return res.success(result.message, {
       token: result.token,
       user: result.user
     });
@@ -28,8 +28,7 @@ export const login = async (req, res, next) => {
 export const changePassword = async (req, res, next) => {
   try {
     const { userId } = req.user;
-    const { currentPassword, newPassword } = req.body;
-    await service.changePassword(userId, currentPassword, newPassword);
+    await service.changePassword(userId, req.body);
     return res.success('Contraseña actualizada correctamente');
   } catch (error) {
     next(error);

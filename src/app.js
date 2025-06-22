@@ -10,6 +10,13 @@ import { responseMiddleware } from './utils/response.js';
 import { setupSwagger } from './config/swagger.js';
 import apiRoutes from './routes/index.js';
 import { logger } from './utils/logger.js';
+import { 
+  generalRateLimit, 
+  helmetConfig, 
+  sanitizeInputs, 
+  detectSuspiciousActivity,
+  securityLogger 
+} from './middlewares/advancedSecurity.js';
 
 // Para poder usar __dirname con ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -22,11 +29,34 @@ const corsOptions = {
   origin: ['http://localhost:4200', 'http://127.0.0.1:4200'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'x-csrf-token', 'x-app-origin'],
+  allowedHeaders: [
+    'Origin', 
+    'X-Requested-With', 
+    'Content-Type', 
+    'Accept', 
+    'Authorization',
+    'x-csrf-token',
+    'x-app-origin',
+    'x-request-timestamp',
+    'x-request-nonce',
+    'x-client-token',
+    'x-user-agent-hash',
+    'x-api-version',
+    'x-content-type-options',
+    'x-frame-options',
+    'x-xss-protection',
+    'referrer-policy',
+    'x-client-version'  ],
   optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
+
+// Aplicar Helmet para seguridad de headers
+app.use(helmetConfig);
+
+// Rate limiting general
+app.use(generalRateLimit);
 
 // Middleware de respuesta estandarizada
 app.use(responseMiddleware);
@@ -42,6 +72,10 @@ app.use(morgan('combined', {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Middlewares de seguridad avanzada
+app.use(sanitizeInputs);
+app.use(detectSuspiciousActivity);
 
 // Aplicar middlewares de seguridad (sin CSRF en desarrollo)
 applySecurity(app, false);

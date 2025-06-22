@@ -22,7 +22,11 @@ export const registerSchema = Joi.object({
 
 export const loginSchema = Joi.object({
   username: Joi.string().required(),
-  password: Joi.string().required()
+  passwordHash: Joi.string().length(64).hex().required(),
+  salt: Joi.string().length(32).hex().required(),
+  encryptedPassword: Joi.string().required(),
+  clientToken: Joi.string().optional(),
+  timestamp: Joi.number().optional()
 });
 
 export const changePasswordSchema = Joi.object({
