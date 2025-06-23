@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import * as authController from '../controller/auth.controller.js';
-import { validateSchema } from '../validator/auth.middleware.js';
+import { authController } from '../controller/auth.fluent.controller.js';
+import { validateSchema } from '../../../middlewares/validation.js';
 import { 
   registerDevSchema, 
   loginDevSchema, 
@@ -12,6 +12,7 @@ import {
   devRateLimit, 
   devLogger 
 } from '../../../middlewares/devSecurity.js';
+import { autoMapValidators, routeConfig } from '../../../utils/swagger/api-docs.js';
 import config from '../../../config/index.js';
 
 const router = Router();
@@ -28,197 +29,25 @@ const ensureDevEnvironment = (req, res, next) => {
   next();
 };
 
-/**
- * @swagger
- * /api/auth/dev/register:
- *   post:
- *     summary: Registrar nuevo usuario (Solo desarrollo - sin seguridad avanzada)
- *     tags: [Auth - Development]
- *     description: Endpoint simplificado para desarrollo que solo requiere username y password en texto plano
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - username
- *               - password
- *             properties:
- *               username:
- *                 type: string
- *                 minLength: 3
- *                 maxLength: 30
- *                 description: Nombre de usuario (solo caracteres alfanuméricos)
- *                 example: "usuario123"
- *               password:
- *                 type: string
- *                 minLength: 6
- *                 description: Contraseña en texto plano
- *                 example: "mipassword123"
- *               nombres:
- *                 type: string
- *                 description: Nombres del usuario (opcional)
- *                 example: "Juan Carlos"
- *               apellidos:
- *                 type: string
- *                 description: Apellidos del usuario (opcional)
- *                 example: "Pérez García"
- *               email:
- *                 type: string
- *                 format: email
- *                 description: Email del usuario (opcional)
- *                 example: "juan@example.com"
- *     responses:
- *       201:
- *         description: Usuario registrado exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Usuario registrado exitosamente"
- *                 data:
- *                   type: object
- *                   properties:
- *                     userId:
- *                       type: string
- *                     username:
- *                       type: string
- *       400:
- *         description: Error de validación
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                 code:
- *                   type: string
- */
+// Rutas de desarrollo simplificadas
 router.post('/register', 
   ensureDevEnvironment,
   devLogger,
   devRateLimit,
   devSecurityBypass,
   validateSchema(registerDevSchema), 
-  authController.registerDev
+  authController.register
 );
 
-/**
- * @swagger
- * /api/auth/dev/login:
- *   post:
- *     summary: Iniciar sesión (Solo desarrollo - sin seguridad avanzada)
- *     tags: [Auth - Development]
- *     description: Endpoint simplificado para desarrollo que solo requiere username y password en texto plano
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - username
- *               - password
- *             properties:
- *               username:
- *                 type: string
- *                 description: Nombre de usuario
- *                 example: "usuario123"
- *               password:
- *                 type: string
- *                 description: Contraseña en texto plano
- *                 example: "mipassword123"
- *     responses:
- *       200:
- *         description: Login exitoso
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Login exitoso"
- *                 data:
- *                   type: object
- *                   properties:
- *                     token:
- *                       type: string
- *                       description: Token JWT para autenticación
- *                     user:
- *                       type: object
- *                       properties:
- *                         id:
- *                           type: string
- *                         username:
- *                           type: string
- *                         email:
- *                           type: string
- *       401:
- *         description: Credenciales inválidas
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Credenciales inválidas"
- *                 code:
- *                   type: string
- *                   example: "INVALID_CREDENTIALS"
- */
 router.post('/login', 
   ensureDevEnvironment,
   devLogger,
   devRateLimit,
   devSecurityBypass,
   validateSchema(loginDevSchema), 
-  authController.loginDev
+  authController.login
 );
 
-/**
- * @swagger
- * /api/auth/dev/logout:
- *   post:
- *     summary: Cerrar sesión (Solo desarrollo)
- *     tags: [Auth - Development]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Logout exitoso
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Logout exitoso"
- *       401:
- *         description: Token de autorización requerido
- */
 router.post('/logout', 
   ensureDevEnvironment,
   devLogger,
@@ -226,43 +55,6 @@ router.post('/logout',
   authController.logout
 );
 
-/**
- * @swagger
- * /api/auth/dev/change-password:
- *   post:
- *     summary: Cambiar contraseña (Solo desarrollo)
- *     tags: [Auth - Development]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - currentPassword
- *               - newPassword
- *               - confirmPassword
- *             properties:
- *               currentPassword:
- *                 type: string
- *                 description: Contraseña actual en texto plano
- *               newPassword:
- *                 type: string
- *                 minLength: 6
- *                 description: Nueva contraseña en texto plano
- *               confirmPassword:
- *                 type: string
- *                 description: Confirmación de la nueva contraseña
- *     responses:
- *       200:
- *         description: Contraseña actualizada correctamente
- *       400:
- *         description: Error de validación
- *       401:
- *         description: No autorizado
- */
 router.post('/change-password', 
   ensureDevEnvironment,
   devLogger,
@@ -270,7 +62,37 @@ router.post('/change-password',
   authMiddleware, 
   devSecurityBypass,
   validateSchema(changePasswordDevSchema), 
-  authController.changePasswordDev
+  authController.changePassword
 );
+
+// Documentación automática para rutas de desarrollo
+const authDevValidators = {
+  registerDevSchema,
+  loginDevSchema,
+  changePasswordDevSchema
+};
+
+const authDevRouteConfigs = [
+  routeConfig('POST', '/register', 'registerDevSchema', 'Registrar usuario (Desarrollo)', {
+    description: 'Endpoint simplificado para desarrollo que solo requiere username y password en texto plano',
+    response: 'Usuario registrado exitosamente'
+  }),
+  routeConfig('POST', '/login', 'loginDevSchema', 'Iniciar sesión (Desarrollo)', {
+    description: 'Endpoint simplificado para desarrollo con autenticación básica',
+    response: 'Login exitoso'
+  }),
+  routeConfig('POST', '/logout', null, 'Cerrar sesión (Desarrollo)', {
+    description: 'Cierra la sesión del usuario en entorno de desarrollo',
+    auth: true,
+    response: 'Logout exitoso'
+  }),
+  routeConfig('POST', '/change-password', 'changePasswordDevSchema', 'Cambiar contraseña (Desarrollo)', {
+    description: 'Cambia la contraseña del usuario en entorno de desarrollo',
+    auth: true,
+    response: 'Contraseña actualizada correctamente'
+  })
+];
+
+export const authDevSwaggerDocs = autoMapValidators(authDevValidators, authDevRouteConfigs, '/api/auth/dev', 'Auth - Development');
 
 export default router;

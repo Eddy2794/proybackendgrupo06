@@ -2,6 +2,8 @@ import swaggerUi from 'swagger-ui-express';
 import { authSwaggerDocs } from '../modules/auth/route/auth.fluent.routes.js';
 import { userSwaggerDocs } from '../modules/user/route/user.fluent.routes.js';
 import { personaSwaggerDocs } from '../modules/persona/route/persona.fluent.routes.js';
+import { authDevSwaggerDocs } from '../modules/auth/route/auth.dev.routes.js';
+import config from './index.js';
 
 // Configuración base de Swagger con documentación automática
 const swaggerDefinition = {
@@ -47,11 +49,11 @@ const swaggerDefinition = {
         }
       }
     }
-  },
-  tags: [
+  },  tags: [
     { name: 'Auth', description: 'Operaciones de autenticación' },
     { name: 'Users', description: 'Gestión de usuarios' },
-    { name: 'Personas', description: 'Gestión de personas' }
+    { name: 'Personas', description: 'Gestión de personas' },
+    { name: 'Auth - Development', description: 'Endpoints de desarrollo para autenticación (solo en dev)' }
   ]
 };
 
@@ -61,7 +63,9 @@ const completeSwaggerSpec = {
   paths: {
     ...authSwaggerDocs,
     ...userSwaggerDocs,
-    ...personaSwaggerDocs
+    ...personaSwaggerDocs,
+    // Incluir rutas de desarrollo solo si estamos en entorno de desarrollo
+    ...(config.env === 'development' ? authDevSwaggerDocs : {})
   }
 };
 
@@ -80,9 +84,12 @@ export const setupSwagger = (app) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(completeSwaggerSpec);
   });
-
   console.log('📚 Swagger configurado con documentación automática:');
   console.log(`   🔗 Documentación: http://localhost:3000/docs`);
   console.log(`   📄 JSON Spec: http://localhost:3000/docs.json`);
   console.log(`   🤖 Total Endpoints: ${Object.keys(completeSwaggerSpec.paths).length}`);
+  
+  if (config.env === 'development') {
+    console.log(`   🚧 Rutas de desarrollo incluidas en documentación`);
+  }
 };
