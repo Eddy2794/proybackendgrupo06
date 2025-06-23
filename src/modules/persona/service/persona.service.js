@@ -118,3 +118,33 @@ export const getPersonasByAge = async (minAge, maxAge) => {
 
   return await personaRepo.findByAge(minAge, maxAge);
 };
+
+/**
+ * Método para crear persona con soporte para transacciones
+ */
+export const createPersonaWithSession = async (personaData, session) => {
+  // Validar que no exista una persona con el mismo documento
+  const existingPersona = await personaRepo.findByDocumentoWithSession(personaData.numeroDocumento, session);
+  if (existingPersona) {
+    throw new Error('Ya existe una persona registrada con este número de documento');
+  }
+
+  // Validar que no exista una persona con el mismo email (solo si se proporciona)
+  if (personaData.email) {
+    const existingEmail = await personaRepo.findByEmailWithSession(personaData.email, session);
+    if (existingEmail) {
+      throw new Error('Ya existe una persona registrada con este email');
+    }
+  }
+
+  // Validar edad mínima
+  const fechaNacimiento = new Date(personaData.fechaNacimiento);
+  const hoy = new Date();
+  const edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
+  
+  if (edad < 13) {
+    throw new Error('La persona debe ser mayor de 13 años para registrarse');
+  }
+
+  return await personaRepo.createWithSession(personaData, session);
+};

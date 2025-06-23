@@ -82,3 +82,40 @@ export const countByStatus = async () => {
     }
   ]);
 };
+
+/**
+ * Métodos con soporte para transacciones MongoDB
+ */
+
+export const createWithSession = async (data, session) => {
+  const user = new User(data);
+  return await user.save({ session });
+};
+
+export const findByUsernameWithSession = async (username, session) => {
+  return await User.findOne({ username: username.toLowerCase() }, null, { session })
+    .populate('persona');
+};
+
+export const findByPersonaIdWithSession = async (personaId, session) => {
+  return await User.findOne({ persona: personaId }, null, { session })
+    .populate('persona');
+};
+
+export const findByIdWithSession = async (id, session) => {
+  return await User.findById(id, null, { session })
+    .populate('persona')
+    .select('-password');
+};
+
+export const updateByIdWithSession = async (id, data, session) => {
+  return await User.findByIdAndUpdate(
+    id, 
+    { ...data, updatedAt: new Date() }, 
+    { new: true, runValidators: true, session }
+  ).populate('persona').select('-password');
+};
+
+export const deleteByIdWithSession = async (id, session) => {
+  return await User.findByIdAndDelete(id, { session });
+};

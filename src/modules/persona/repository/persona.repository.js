@@ -91,3 +91,36 @@ export const findByAge = async (minAge, maxAge) => {
     estado: 'ACTIVO'
   });
 };
+
+/**
+ * Métodos con soporte para transacciones MongoDB
+ */
+
+export const createWithSession = async (data, session) => {
+  const persona = new Persona(data);
+  return await persona.save({ session });
+};
+
+export const findByEmailWithSession = async (email, session) => {
+  return await Persona.findOne({ email: email.toLowerCase() }, null, { session });
+};
+
+export const findByDocumentoWithSession = async (numeroDocumento, session) => {
+  return await Persona.findOne({ numeroDocumento }, null, { session });
+};
+
+export const findByIdWithSession = async (id, session) => {
+  return await Persona.findById(id, null, { session });
+};
+
+export const updateByIdWithSession = async (id, data, session) => {
+  return await Persona.findByIdAndUpdate(
+    id, 
+    { ...data, updatedAt: new Date() }, 
+    { new: true, runValidators: true, session }
+  );
+};
+
+export const deleteByIdWithSession = async (id, session) => {
+  return await Persona.findByIdAndDelete(id, { session });
+};
