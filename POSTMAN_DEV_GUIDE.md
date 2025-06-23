@@ -2,6 +2,8 @@
 
 Este archivo contiene ejemplos de requests para probar los endpoints de desarrollo con Postman.
 
+> 📋 **Para configuración automática de autenticación:** Ve a [POSTMAN_AUTH_SETUP.md](./POSTMAN_AUTH_SETUP.md) para configurar Postman para que la autenticación se mantenga automáticamente en todas las pestañas.
+
 ## Variables de Entorno en Postman
 
 Configura las siguientes variables en Postman:

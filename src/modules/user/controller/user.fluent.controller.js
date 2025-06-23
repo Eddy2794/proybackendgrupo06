@@ -1,5 +1,5 @@
 /**
- * Controlador de usuarios con documentación automática
+ * Controlador de usuarios con documentación automática y auditoría
  */
 
 import * as userService from '../service/user.service.js';
@@ -51,13 +51,48 @@ export class UserController {
     } catch (error) {
       next(error);
     }
-  }
-
-  async deleteUser(req, res, next) {
+  }  async deleteUser(req, res, next) {
     try {
       const { id } = req.params;
-      await userService.deleteUser(id);
-      return res.success('Usuario eliminado exitosamente');
+      const deletedBy = req.auditUser || req.user?.userId || null; // Priorizar middleware de auditoría
+      const user = await userService.deleteUser(id, deletedBy);
+      return res.success('Usuario eliminado exitosamente', user);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async restoreUser(req, res, next) {
+    try {
+      const { id } = req.params;
+      const restoredBy = req.auditUser || req.user?.userId || null; // Priorizar middleware de auditoría
+      const user = await userService.restoreUser(id, restoredBy);
+      return res.success('Usuario restaurado exitosamente', user);
+    } catch (error) {
+      next(error);
+    }
+  }
+  async getDeletedUsers(req, res, next) {
+    try {
+      const { page = 1, limit = 10 } = req.query;
+      const options = { page: parseInt(page), limit: parseInt(limit) };
+      const result = await userService.getDeletedUsers({}, options);
+      return res.success('Usuarios eliminados obtenidos exitosamente', result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getAllUsersIncludingDeleted(req, res, next) {
+    try {
+      const { page = 1, limit = 10, includeDeleted = false } = req.query;
+      const options = { page: parseInt(page), limit: parseInt(limit) };
+      
+      const result = includeDeleted === 'true' 
+        ? await userService.getAllUsersIncludingDeleted({}, options)
+        : await userService.getAllUsers({}, options);
+        
+      return res.success('Usuarios obtenidos exitosamente', result);
     } catch (error) {
       next(error);
     }
@@ -110,6 +145,15 @@ export class UserController {
       const options = { page: parseInt(page), limit: parseInt(limit) };
       const users = await userService.getAllUsers(filters, options);
       return res.success('Usuarios por rol obtenidos exitosamente', users);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getAuditStats(req, res, next) {
+    try {
+      const stats = await userService.getAuditStats();
+      return res.success('Estadísticas de auditoría obtenidas exitosamente', stats);
     } catch (error) {
       next(error);
     }

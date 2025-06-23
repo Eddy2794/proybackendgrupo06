@@ -25,7 +25,11 @@ router.get('/:id', authMiddleware, validateObjectId(), personaController.getPers
 router.post('/', authMiddleware, ...applyValidation('createPersonaSchema'), personaController.createPersona);
 router.put('/:id', authMiddleware, validateObjectId(), ...applyValidation('updatePersonaSchema'), personaController.updatePersona);
 router.delete('/:id', authMiddleware, validateObjectId(), personaController.deletePersona);
-router.patch('/:id/activate', authMiddleware, validateObjectId(), personaController.activatePersona);
+
+// Rutas de Soft Delete
+router.post('/:id/restore', authMiddleware, validateObjectId(), personaController.restorePersona);
+router.get('/deleted/list', authMiddleware, ...applyValidation('personaQuerySchema', 'query'), personaController.getDeletedPersonas);
+router.get('/all/including-deleted', authMiddleware, ...applyValidation('personaQuerySchema', 'query'), personaController.getAllPersonasIncludingDeleted);
 
 // Documentación automática personalizada
 const personaRouteConfigs = [
@@ -52,13 +56,28 @@ const personaRouteConfigs = [
   routeConfig('PUT', '/:id', 'updatePersonaSchema', 'Actualizar persona', {
     description: 'Actualiza información de una persona existente',
     auth: true
-  }),
-  routeConfig('DELETE', '/:id', null, 'Eliminar persona', {
-    description: 'Elimina una persona del sistema',
+  }),  routeConfig('DELETE', '/:id', null, 'Eliminar persona', {
+    description: 'Elimina una persona del sistema (soft delete)',
     auth: true
   }),
   routeConfig('PATCH', '/:id/activate', null, 'Activar persona', {
     description: 'Activa una persona desactivada',
+    auth: true
+  }),
+  // Rutas de Soft Delete
+  routeConfig('POST', '/:id/restore', null, 'Restaurar persona eliminada', {
+    description: 'Restaura una persona que fue eliminada con soft delete',
+    auth: true
+  }),
+  routeConfig('DELETE', '/:id/hard', null, 'Eliminar persona permanentemente', {
+    description: 'Elimina una persona de forma permanente (no reversible)',
+    auth: true
+  }),
+  routeConfig('GET', '/deleted/list', 'personaQuerySchema', 'Obtener personas eliminadas', {
+    description: 'Obtiene lista de personas eliminadas con soft delete',
+    auth: true
+  }),  routeConfig('GET', '/all/including-deleted', 'personaQuerySchema', 'Obtener todas las personas incluyendo eliminadas', {
+    description: 'Obtiene todas las personas del sistema, incluyendo las eliminadas',
     auth: true
   })
 ];

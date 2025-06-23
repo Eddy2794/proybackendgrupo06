@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import simpleSoftDelete from '../../../utils/simpleSoftDelete.js';
 
 // Constantes para el modelo
 const TIPOS_DOCUMENTO = ['DNI', 'PASAPORTE', 'CEDULA', 'CARNET_EXTRANJERIA'];
@@ -134,8 +135,10 @@ personaSchema.pre('save', function(next) {
   this.apellidos = this.apellidos.split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
-  
-  next();
+    next();
 });
+
+// Plugin SÚPER SIMPLE de soft delete
+personaSchema.plugin(simpleSoftDelete);
 
 export default mongoose.model('Persona', personaSchema);

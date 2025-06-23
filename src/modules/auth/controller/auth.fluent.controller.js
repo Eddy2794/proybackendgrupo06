@@ -30,11 +30,47 @@ export class AuthController {
     }
   }
 
+  // Métodos específicos para desarrollo
+  async registerDev(req, res, next) {
+    try {
+      const { username, password, ...personaData } = req.body;
+      const result = await service.registerDev({ personaData, username, password });
+      return res.success('Registro de desarrollo exitoso', {
+        token: result.token,
+        user: result.user
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async loginDev(req, res, next) {
+    try {
+      const result = await service.loginDev(req.body);
+      return res.success('Login de desarrollo exitoso', {
+        token: result.token,
+        user: result.user
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async changePassword(req, res, next) {
     try {
       const { userId } = req.user;
       await service.changePassword(userId, req.body);
       return res.success('Contraseña actualizada correctamente');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async changePasswordDev(req, res, next) {
+    try {
+      const { userId } = req.user;
+      await service.changePasswordDev(userId, req.body);
+      return res.success('Contraseña actualizada correctamente (desarrollo)');
     } catch (error) {
       next(error);
     }

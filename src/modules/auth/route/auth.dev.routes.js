@@ -36,7 +36,7 @@ router.post('/register',
   devRateLimit,
   devSecurityBypass,
   validateSchema(registerDevSchema), 
-  authController.register
+  authController.registerDev
 );
 
 router.post('/login', 
@@ -45,7 +45,7 @@ router.post('/login',
   devRateLimit,
   devSecurityBypass,
   validateSchema(loginDevSchema), 
-  authController.login
+  authController.loginDev
 );
 
 router.post('/logout', 
@@ -62,7 +62,7 @@ router.post('/change-password',
   authMiddleware, 
   devSecurityBypass,
   validateSchema(changePasswordDevSchema), 
-  authController.changePassword
+  authController.changePasswordDev
 );
 
 // Documentación automática para rutas de desarrollo

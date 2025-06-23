@@ -29,6 +29,12 @@ router.delete('/:id', authMiddleware, validateObjectId('id'), userController.del
 router.patch('/:id/activate', authMiddleware, validateObjectId('id'), userController.activateUser);
 router.get('/role/:role', authMiddleware, userController.getUsersByRole);
 
+// Rutas de Soft Delete y Auditoría
+router.post('/:id/restore', authMiddleware, validateObjectId('id'), userController.restoreUser);
+router.get('/deleted/list', authMiddleware, ...applyValidation('userQuerySchema', 'query'), userController.getDeletedUsers);
+router.get('/all/including-deleted', authMiddleware, ...applyValidation('userQuerySchema', 'query'), userController.getAllUsersIncludingDeleted);
+router.get('/audit-stats', authMiddleware, userController.getAuditStats);
+
 // Documentación automática personalizada para rutas específicas
 const userRouteConfigs = [
   routeConfig('GET', '/me', null, 'Obtener perfil del usuario actual', {
@@ -58,9 +64,8 @@ const userRouteConfigs = [
   routeConfig('PUT', '/:id', 'updateUserSchema', 'Actualizar usuario', {
     description: 'Actualiza información de un usuario existente',
     auth: true
-  }),
-  routeConfig('DELETE', '/:id', null, 'Eliminar usuario', {
-    description: 'Elimina un usuario del sistema',
+  }),  routeConfig('DELETE', '/:id', null, 'Eliminar usuario', {
+    description: 'Elimina un usuario del sistema (soft delete)',
     auth: true
   }),
   routeConfig('PATCH', '/:id/activate', null, 'Activar usuario', {
@@ -69,6 +74,22 @@ const userRouteConfigs = [
   }),
   routeConfig('GET', '/role/:role', null, 'Obtener usuarios por rol', {
     description: 'Obtiene usuarios filtrados por rol específico',
+    auth: true
+  }),  // Rutas de Soft Delete y Auditoría
+  routeConfig('POST', '/:id/restore', null, 'Restaurar usuario eliminado', {
+    description: 'Restaura un usuario que fue eliminado con soft delete',
+    auth: true
+  }),
+  routeConfig('GET', '/deleted/list', 'userQuerySchema', 'Obtener usuarios eliminados', {
+    description: 'Obtiene lista de usuarios eliminados con soft delete',
+    auth: true
+  }),
+  routeConfig('GET', '/all/including-deleted', 'userQuerySchema', 'Obtener todos los usuarios incluyendo eliminados', {
+    description: 'Obtiene todos los usuarios del sistema, incluyendo los eliminados',
+    auth: true
+  }),
+  routeConfig('GET', '/audit-stats', null, 'Obtener estadísticas de auditoría', {
+    description: 'Obtiene estadísticas de eliminaciones y restauraciones para auditoría',
     auth: true
   })
 ];

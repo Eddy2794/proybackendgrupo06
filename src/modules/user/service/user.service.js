@@ -45,14 +45,20 @@ export const updateUser = async (id, updateData) => {
   return await userRepo.updateById(id, updateData);
 };
 
-export const deleteUser = async (id) => {
-  const user = await userRepo.findById(id);
-  if (!user) {
-    throw new Error('Usuario no encontrado');
-  }
+export const deleteUser = async (id, deletedBy = null) => {
+  return await userRepo.softDeleteById(id, deletedBy);
+};
 
-  // Soft delete - cambiar estado a INACTIVO
-  return await userRepo.softDeleteById(id);
+export const restoreUser = async (id, restoredBy = null) => {
+  return await userRepo.restoreById(id, restoredBy);
+};
+
+export const getDeletedUsers = async (filters = {}, options = {}) => {
+  return await userRepo.findDeleted(filters, options);
+};
+
+export const getAllUsersIncludingDeleted = async (filters = {}, options = {}) => {
+  return await userRepo.findWithDeleted(filters, options);
 };
 
 export const activateUser = async (id) => {
@@ -76,5 +82,22 @@ export const getUserStats = async () => {
   return {
     totalUsuarios: statusCounts.reduce((total, item) => total + item.count, 0),
     porEstado: statusCounts
+  };
+};
+
+export const getAuditStats = async () => {
+  const deletedStats = await userRepo.getDeletedStats();
+  const totalUsers = await userRepo.countAll();
+  const deletedUsers = await userRepo.countDeleted();
+  
+  return {
+    total: totalUsers,
+    activos: totalUsers - deletedUsers,
+    eliminados: deletedUsers,
+    estadisticasEliminacion: deletedStats[0] || {
+      total: 0,
+      eliminacionMasAntigua: null,
+      eliminacionMasReciente: null
+    }
   };
 };

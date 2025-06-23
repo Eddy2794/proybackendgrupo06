@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
+import simpleSoftDelete from '../../../utils/simpleSoftDelete.js';
 
 // Constantes para el modelo
 const USER_ROLES = ['USER', 'ADMIN', 'MODERATOR'];
@@ -176,5 +177,8 @@ userSchema.methods.toJSON = function() {
 // Incluir virtuals en JSON
 userSchema.set('toJSON', { virtuals: true });
 userSchema.set('toObject', { virtuals: true });
+
+// Plugin SÚPER SIMPLE de soft delete
+userSchema.plugin(simpleSoftDelete);
 
 export default mongoose.model('User', userSchema);

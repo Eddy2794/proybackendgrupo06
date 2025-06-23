@@ -39,7 +39,7 @@ export const register = async ({ personaData, username, password }) => {
           persona: persona._id,
           username: username.toLowerCase(),
           password,
-          estado: process.env.NODE_ENV === 'test' ? 'ACTIVO' : 'PENDIENTE_VERIFICACION',
+          estado: process.env.NODE_ENV === 'test' ? 'ACTIVO' : 'ACTIVO',
           emailVerificado: process.env.NODE_ENV === 'test' ? true : false
         };
         
@@ -91,7 +91,7 @@ export const register = async ({ personaData, username, password }) => {
         persona: createdPersona._id,
         username: username.toLowerCase(),
         password,
-        estado: process.env.NODE_ENV === 'test' ? 'ACTIVO' : 'PENDIENTE_VERIFICACION',
+        estado: process.env.NODE_ENV === 'test' ? 'ACTIVO' : 'ACTIVO',
         emailVerificado: process.env.NODE_ENV === 'test' ? true : false
       };
       

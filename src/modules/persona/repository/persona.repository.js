@@ -55,16 +55,58 @@ export const updateById = async (id, data) => {
   );
 };
 
-export const deleteById = async (id) => {
-  return await Persona.findByIdAndDelete(id);
+export const softDeleteById = async (id, deletedBy = null) => {
+  return await Persona.softDeleteById(id, deletedBy);
 };
 
-export const softDeleteById = async (id) => {
-  return await Persona.findByIdAndUpdate(
-    id,
-    { estado: 'INACTIVO', updatedAt: new Date() },
-    { new: true }
-  );
+export const restoreById = async (id, restoredBy = null) => {
+  return await Persona.restoreById(id, restoredBy);
+};
+
+export const findDeleted = async (filter = {}, options = {}) => {
+  const { page = 1, limit = 10, sort = { deleted: -1 } } = options;
+  const skip = (page - 1) * limit;
+  
+  const personas = await Persona
+    .findDeleted(filter)
+    .sort(sort)
+    .skip(skip)
+    .limit(limit);
+    
+  const total = await Persona.findDeleted(filter).countDocuments();
+  
+  return {
+    personas,
+    pagination: {
+      page,
+      limit,
+      total,
+      pages: Math.ceil(total / limit)
+    }
+  };
+};
+
+export const findWithDeleted = async (filter = {}, options = {}) => {
+  const { page = 1, limit = 10, sort = { createdAt: -1 } } = options;
+  const skip = (page - 1) * limit;
+  
+  const personas = await Persona
+    .findWithDeleted(filter)
+    .sort(sort)
+    .skip(skip)
+    .limit(limit);
+    
+  const total = await Persona.findWithDeleted(filter).countDocuments();
+  
+  return {
+    personas,
+    pagination: {
+      page,
+      limit,
+      total,
+      pages: Math.ceil(total / limit)
+    }
+  };
 };
 
 export const searchByName = async (searchTerm) => {
@@ -73,8 +115,7 @@ export const searchByName = async (searchTerm) => {
     $or: [
       { nombres: regex },
       { apellidos: regex }
-    ],
-    estado: 'ACTIVO'
+    ]
   }).limit(20);
 };
 
@@ -87,8 +128,7 @@ export const findByAge = async (minAge, maxAge) => {
     fechaNacimiento: {
       $gte: fechaMin,
       $lte: fechaMax
-    },
-    estado: 'ACTIVO'
+    }
   });
 };
 
@@ -121,6 +161,22 @@ export const updateByIdWithSession = async (id, data, session) => {
   );
 };
 
-export const deleteByIdWithSession = async (id, session) => {
-  return await Persona.findByIdAndDelete(id, { session });
+export const softDeleteByIdWithSession = async (id, deletedBy = null, session) => {
+  const persona = await Persona.findById(id, null, { session });
+  if (!persona) return null;
+  persona.deleted = new Date();
+  persona.deletedBy = deletedBy;
+  persona.restoredAt = null;
+  persona.restoredBy = null;
+  return await persona.save({ session });
+};
+
+export const restoreByIdWithSession = async (id, restoredBy = null, session) => {
+  const persona = await Persona.findWithDeleted({ _id: id }).session(session);
+  if (!persona) return null;
+  persona.deleted = null;
+  persona.deletedBy = null;
+  persona.restoredAt = new Date();
+  persona.restoredBy = restoredBy;
+  return await persona.save({ session });
 };

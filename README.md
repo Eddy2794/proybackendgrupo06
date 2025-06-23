@@ -7,6 +7,7 @@ API RESTful desarrollada con Express 5, MongoDB y autenticación JWT.
 - **Express 5** - Framework web moderno
 - **MongoDB** con Mongoose - Base de datos NoSQL
 - **JWT Authentication** - Autenticación segura
+- **Soft Delete System** - Eliminación segura sin pérdida de datos
 - **Helmet** - Seguridad HTTP headers
 - **Rate Limiting** - Protección contra ataques
 - **XSS Protection** - Sanitización de datos
@@ -167,7 +168,93 @@ pnpm test
 pnpm run test:watch
 ```
 
-## 📝 Contribución
+## 📋 Requisitos
+
+- Node.js >= 18
+- MongoDB >= 5.0
+- pnpm (recomendado) o npm
+
+## 🛠️ Instalación
+
+1. **Clonar el repositorio**
+```bash
+git clone <repository-url>
+cd proybackendgrupo06
+```
+
+2. **Instalar dependencias**
+```bash
+pnpm install
+```
+
+3. **Configurar variables de entorno**
+```bash
+cp ejemplo.env .env
+```
+
+Editar `.env` con tus configuraciones:
+```env
+PORT=3000
+NODE_ENV=development
+DB_URI=mongodb://localhost:27017/proybackendgrupo06
+JWT_SECRET=tu-clave-secreta-muy-segura
+```
+
+## 🧪 Testing con Postman
+
+### Configuración Rápida
+
+1. **Importar Colección:**
+   - Importa `postman-collection.json` en Postman
+   - Importa `postman-environment.json` como entorno
+
+2. **Configuración Automática:**
+   - Selecciona el entorno "TP Final - Desarrollo"
+   - La autenticación se manejará automáticamente
+
+### Guías Disponibles
+
+- **[POSTMAN_AUTH_SETUP.md](./POSTMAN_AUTH_SETUP.md)** - Configuración detallada de autenticación automática
+- **[POSTMAN_DEV_GUIDE.md](./POSTMAN_DEV_GUIDE.md)** - Ejemplos de requests y respuestas
+
+### Flujo de Trabajo
+
+1. **Registro/Login:** Ejecuta cualquier request de autenticación
+2. **Token Automático:** El token se guarda automáticamente
+3. **Requests Protegidos:** Funcionan automáticamente sin configuración adicional
+
+## � Documentación Técnica
+
+### Guías Disponibles
+
+- **[POSTMAN_AUTH_SETUP.md](./POSTMAN_AUTH_SETUP.md)** - Configuración detallada de autenticación automática en Postman
+- **[POSTMAN_DEV_GUIDE.md](./POSTMAN_DEV_GUIDE.md)** - Ejemplos de requests y respuestas para desarrollo
+- **[SOFT_DELETE_SYSTEM.md](./SOFT_DELETE_SYSTEM.md)** - Sistema completo de eliminación segura (Soft Delete)
+- **[IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md)** - Resumen de la migración de Swagger y automatizaciones
+- **[MONGODB_COMPATIBILITY.md](./MONGODB_COMPATIBILITY.md)** - Compatibilidad con diferentes versiones de MongoDB
+
+### Características Técnicas Destacadas
+
+#### 🗑️ Sistema de Soft Delete
+- **Eliminación segura** sin pérdida de datos
+- **Restauración completa** de registros eliminados
+- **Auditoría automática** de quién y cuándo se eliminó/restauró
+- **Filtrado inteligente** que excluye eliminados en consultas normales
+- **APIs específicas** para gestionar registros eliminados
+
+#### 🔄 Automatización de Swagger
+- **Documentación automática** generada desde esquemas Joi
+- **Mapeo inteligente** de validadores a esquemas Swagger
+- **Centralización** de middlewares de validación
+- **Endpoints de desarrollo** automáticamente documentados
+
+#### 🔐 Autenticación Robusta
+- **JWT con refresh tokens** y blacklist automática
+- **Middlewares centralizados** para validación y autenticación
+- **Rutas de desarrollo** simplificadas para testing
+- **Rate limiting** y protecciones de seguridad avanzadas
+
+## �📝 Contribución
 
 1. Fork el proyecto
 2. Crear branch para feature (`git checkout -b feature/nueva-funcionalidad`)

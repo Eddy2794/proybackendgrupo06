@@ -50,13 +50,49 @@ export class PersonaController {
     } catch (error) {
       next(error);
     }
-  }
-
-  async deletePersona(req, res, next) {
+  }  async deletePersona(req, res, next) {
     try {
       const { id } = req.params;
-      await personaService.deletePersona(id);
-      return res.success('Persona desactivada exitosamente');
+      const deletedBy = req.auditUser || req.user?.userId || null; // Priorizar middleware de auditoría
+      const persona = await personaService.deletePersona(id, deletedBy);
+      return res.success('Persona eliminada exitosamente', persona);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async restorePersona(req, res, next) {
+    try {
+      const { id } = req.params;
+      const restoredBy = req.auditUser || req.user?.userId || null; // Priorizar middleware de auditoría
+      const persona = await personaService.restorePersona(id, restoredBy);
+      return res.success('Persona restaurada exitosamente', persona);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getDeletedPersonas(req, res, next) {
+    try {
+      const { page = 1, limit = 10 } = req.query;
+      const options = { page: parseInt(page), limit: parseInt(limit) };
+      const result = await personaService.getDeletedPersonas({}, options);
+      return res.success('Personas eliminadas obtenidas exitosamente', result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getAllPersonasIncludingDeleted(req, res, next) {
+    try {
+      const { page = 1, limit = 10, includeDeleted = false } = req.query;
+      const options = { page: parseInt(page), limit: parseInt(limit) };
+      
+      const result = includeDeleted === 'true' 
+        ? await personaService.getAllPersonasIncludingDeleted({}, options)
+        : await personaService.getAllPersonas({}, options);
+        
+      return res.success('Personas obtenidas exitosamente', result);
     } catch (error) {
       next(error);
     }

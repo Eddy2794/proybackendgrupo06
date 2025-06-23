@@ -30,11 +30,6 @@ export const getPersonaById = async (id) => {
   if (!persona) {
     throw new Error('Persona no encontrada');
   }
-  
-  if (persona.estado === 'INACTIVO') {
-    throw new Error('La persona está inactiva');
-  }
-  
   return persona;
 };
 
@@ -84,23 +79,20 @@ export const updatePersona = async (id, updateData) => {
   return await personaRepo.updateById(id, updateData);
 };
 
-export const deletePersona = async (id) => {
-  const persona = await personaRepo.findById(id);
-  if (!persona) {
-    throw new Error('Persona no encontrada');
-  }
-
-  // Soft delete - cambiar estado a INACTIVO
-  return await personaRepo.softDeleteById(id);
+export const deletePersona = async (id, deletedBy = null) => {
+  return await personaRepo.softDeleteById(id, deletedBy);
 };
 
-export const activatePersona = async (id) => {
-  const persona = await personaRepo.findById(id);
-  if (!persona) {
-    throw new Error('Persona no encontrada');
-  }
+export const restorePersona = async (id, restoredBy = null) => {
+  return await personaRepo.restoreById(id, restoredBy);
+};
 
-  return await personaRepo.updateById(id, { estado: 'ACTIVO' });
+export const getDeletedPersonas = async (filters = {}, options = {}) => {
+  return await personaRepo.findDeleted(filters, options);
+};
+
+export const getAllPersonasIncludingDeleted = async (filters = {}, options = {}) => {
+  return await personaRepo.findWithDeleted(filters, options);
 };
 
 export const searchPersonas = async (searchTerm) => {

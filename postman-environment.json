@@ -1,0 +1,25 @@
+{
+  "name": "TP Final - Desarrollo",
+  "values": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api",
+      "enabled": true
+    },
+    {
+      "key": "dev_token",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "auth_header",
+      "value": "Bearer {{dev_token}}",
+      "enabled": true
+    },
+    {
+      "key": "current_user",
+      "value": "",
+      "enabled": true
+    }
+  ]
+}
