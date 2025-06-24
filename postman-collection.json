@@ -1,0 +1,521 @@
+{
+  "info": {
+    "name": "TP Final API - Desarrollo",
+    "description": "Colección para testing de la API del TP Final con autenticación automática",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{dev_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "{{base_url}}"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Pre-request script de la colección",
+          "const token = pm.environment.get('dev_token');",
+          "",
+          "// Solo verificar token en rutas protegidas",
+          "const protectedRoutes = ['/auth/profile', '/auth/logout', '/auth/change-password', '/users', '/personas'];",
+          "const currentPath = pm.request.url.getPath();",
+          "",
+          "const isProtectedRoute = protectedRoutes.some(route => currentPath.includes(route));",
+          "",
+          "if (isProtectedRoute && !token) {",
+          "    console.log('⚠️  ADVERTENCIA: Request a ruta protegida sin token');",
+          "    console.log('🔑 Ejecuta primero el request de Login');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth - Desarrollo",
+      "item": [
+        {
+          "name": "Registro de Usuario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"usuario{{$timestamp}}\",\n  \"password\": \"123456\",\n  \"nombres\": \"Usuario\",\n  \"apellidos\": \"Test\",\n  \"email\": \"test{{$timestamp}}@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/dev/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "dev", "register"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Guardar token automáticamente después del registro exitoso",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    if (response.success && response.data && response.data.token) {",
+                  "        pm.environment.set('dev_token', response.data.token);",
+                  "        console.log('✅ Token guardado después del registro');",
+                  "        ",
+                  "        if (response.data.user) {",
+                  "            pm.environment.set('current_user', JSON.stringify(response.data.user));",
+                  "            console.log('👤 Nuevo usuario:', response.data.user.username);",
+                  "        }",
+                  "    }",
+                  "} else {",
+                  "    console.log('❌ Error en registro:', pm.response.json().message);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login de Usuario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/dev/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "dev", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Guardar token automáticamente después del login exitoso",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    if (response.success && response.data && response.data.token) {",
+                  "        pm.environment.set('dev_token', response.data.token);",
+                  "        console.log('✅ Token guardado exitosamente');",
+                  "        console.log('Token:', response.data.token.substring(0, 20) + '...');",
+                  "        ",
+                  "        if (response.data.user) {",
+                  "            pm.environment.set('current_user', JSON.stringify(response.data.user));",
+                  "            console.log('👤 Usuario:', response.data.user.username);",
+                  "        }",
+                  "    }",
+                  "} else {",
+                  "    console.log('❌ Error en login:', pm.response.json().message);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": {
+              "type": "inherit"
+            },
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/auth/dev/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "dev", "logout"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Limpiar token después del logout",
+                  "if (pm.response.code === 200) {",
+                  "    pm.environment.unset('dev_token');",
+                  "    pm.environment.unset('current_user');",
+                  "    console.log('🚪 Token eliminado - Sesión cerrada');",
+                  "} else {",
+                  "    console.log('❌ Error en logout');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cambiar Contraseña",
+          "request": {
+            "auth": {
+              "type": "inherit"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"123456\",\n  \"newPassword\": \"nuevapassword789\",\n  \"confirmPassword\": \"nuevapassword789\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/dev/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "dev", "change-password"]
+            }
+          }
+        },
+        {
+          "name": "Obtener Perfil",
+          "request": {
+            "auth": {
+              "type": "inherit"
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Verificar que el request está autenticado",
+                  "if (pm.response.code === 401) {",
+                  "    console.log('🔒 Token expirado o inválido - Necesitas hacer login');",
+                  "} else if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('✅ Perfil obtenido:', response.data.username);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Información API",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/",
+          "host": ["{{baseUrl}}"],
+          "path": [""]
+        }
+      }
+    },    {
+      "name": "Usuarios",
+      "item": [
+        {
+          "name": "Listar Usuarios",
+          "request": {
+            "auth": {
+              "type": "inherit"
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "Obtener Usuario por ID",
+          "request": {
+            "auth": {
+              "type": "inherit"
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "USER_ID_AQUI"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Eliminar Usuario (Soft Delete)",
+          "request": {
+            "auth": {
+              "type": "inherit"
+            },
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "USER_ID_AQUI"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Restaurar Usuario",
+          "request": {
+            "auth": {
+              "type": "inherit"
+            },
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/users/:id/restore",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id", "restore"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "USER_ID_AQUI"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Eliminar Usuario Permanentemente",
+          "request": {
+            "auth": {
+              "type": "inherit"
+            },
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/users/:id/hard",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id", "hard"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "USER_ID_AQUI"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar Usuarios Eliminados",
+          "request": {
+            "auth": {
+              "type": "inherit"
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users/deleted/list",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "deleted", "list"]
+            }
+          }
+        },
+        {
+          "name": "Listar Todos Incluyendo Eliminados",
+          "request": {
+            "auth": {
+              "type": "inherit"
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users/all/including-deleted?includeDeleted=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "all", "including-deleted"],
+              "query": [
+                {
+                  "key": "includeDeleted",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Personas",
+      "item": [
+        {
+          "name": "Listar Personas",
+          "request": {
+            "auth": {
+              "type": "inherit"
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/personas",
+              "host": ["{{baseUrl}}"],
+              "path": ["personas"]
+            }
+          }
+        },
+        {
+          "name": "Crear Persona",
+          "request": {
+            "auth": {
+              "type": "inherit"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombres\": \"Juan Carlos\",\n  \"apellidos\": \"Pérez García\",\n  \"email\": \"juan.perez@example.com\",\n  \"telefono\": \"+549876543210\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/personas",
+              "host": ["{{baseUrl}}"],
+              "path": ["personas"]
+            }
+          }
+        },
+        {
+          "name": "Eliminar Persona (Soft Delete)",
+          "request": {
+            "auth": {
+              "type": "inherit"
+            },
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/personas/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["personas", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "PERSONA_ID_AQUI"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Restaurar Persona",
+          "request": {
+            "auth": {
+              "type": "inherit"
+            },
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/personas/:id/restore",
+              "host": ["{{baseUrl}}"],
+              "path": ["personas", ":id", "restore"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "PERSONA_ID_AQUI"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Eliminar Persona Permanentemente",
+          "request": {
+            "auth": {
+              "type": "inherit"
+            },
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/personas/:id/hard",
+              "host": ["{{baseUrl}}"],
+              "path": ["personas", ":id", "hard"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "PERSONA_ID_AQUI"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar Personas Eliminadas",
+          "request": {
+            "auth": {
+              "type": "inherit"
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/personas/deleted/list",
+              "host": ["{{baseUrl}}"],
+              "path": ["personas", "deleted", "list"]
+            }
+          }
+        },
+        {
+          "name": "Listar Todas Incluyendo Eliminadas",
+          "request": {
+            "auth": {
+              "type": "inherit"
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/personas/all/including-deleted?includeDeleted=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["personas", "all", "including-deleted"],
+              "query": [
+                {
+                  "key": "includeDeleted",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
