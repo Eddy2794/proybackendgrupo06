@@ -8,6 +8,7 @@ import userFluentRoutes from '../modules/user/route/user.fluent.routes.js';
 import personaFluentRoutes from '../modules/persona/route/persona.fluent.routes.js';
 import profesorRoutes from '../modules/profesor/routes/profesor-routes.js';
 
+
 // Importar rutas de desarrollo
 import authDevRoutes from '../modules/auth/route/auth.dev.routes.js';
 

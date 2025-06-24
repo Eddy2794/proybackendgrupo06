@@ -4,6 +4,7 @@ import { userSwaggerDocs } from '../modules/user/route/user.fluent.routes.js';
 import { personaSwaggerDocs } from '../modules/persona/route/persona.fluent.routes.js';
 import { authDevSwaggerDocs } from '../modules/auth/route/auth.dev.routes.js';
 import { profesorSwaggerDocs } from '../modules/profesor/routes/profesor-routes.js';
+
 import config from './index.js';
 
 // Configuración base de Swagger con documentación automática
