@@ -2,6 +2,7 @@ import swaggerUi from 'swagger-ui-express';
 import { authSwaggerDocs } from '../modules/auth/route/auth.fluent.routes.js';
 import { userSwaggerDocs } from '../modules/user/route/user.fluent.routes.js';
 import { personaSwaggerDocs } from '../modules/persona/route/persona.fluent.routes.js';
+import { categoriaSwaggerDocs } from '../modules/categoria/route/categoria.routes.js';
 import { authDevSwaggerDocs } from '../modules/auth/route/auth.dev.routes.js';
 import config from './index.js';
 
@@ -64,6 +65,7 @@ const completeSwaggerSpec = {
     ...authSwaggerDocs,
     ...userSwaggerDocs,
     ...personaSwaggerDocs,
+    ...categoriaSwaggerDocs,
     // Incluir rutas de desarrollo solo si estamos en entorno de desarrollo
     ...(config.env === 'development' ? authDevSwaggerDocs : {})
   }
