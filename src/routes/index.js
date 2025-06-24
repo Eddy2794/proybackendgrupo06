@@ -6,6 +6,8 @@ import config from '../config/index.js';
 import authFluentRoutes from '../modules/auth/route/auth.fluent.routes.js';
 import userFluentRoutes from '../modules/user/route/user.fluent.routes.js';
 import personaFluentRoutes from '../modules/persona/route/persona.fluent.routes.js';
+import profesorRoutes from '../modules/profesor/routes/profesor-routes.js';
+
 
 // Importar rutas de desarrollo
 import authDevRoutes from '../modules/auth/route/auth.dev.routes.js';
@@ -23,6 +25,7 @@ router.use((req, res, next) => {
 router.use('/auth', authFluentRoutes);
 router.use('/users', userFluentRoutes);
 router.use('/personas', personaFluentRoutes);
+router.use('/profesores', profesorRoutes);
 
 // Rutas de desarrollo (solo disponibles en NODE_ENV=development)
 if (config.env === 'development') {
@@ -36,6 +39,7 @@ router.get('/', (req, res) => {
     auth: '/api/auth',
     users: '/api/users',
     personas: '/api/personas',
+    profesores: '/api/profesores',
     docs: '/docs',
     health: '/health'
   };
