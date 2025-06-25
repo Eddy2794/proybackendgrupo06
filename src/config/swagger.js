@@ -4,6 +4,7 @@ import { userSwaggerDocs } from '../modules/user/route/user.fluent.routes.js';
 import { personaSwaggerDocs } from '../modules/persona/route/persona.fluent.routes.js';
 import { authDevSwaggerDocs } from '../modules/auth/route/auth.dev.routes.js';
 import { profesorSwaggerDocs } from '../modules/profesor/routes/profesor-routes.js';
+import { torneoSwaggerDocs } from '../modules/torneo/routes/torneo.routes.js';
 
 import config from './index.js';
 
@@ -56,6 +57,7 @@ const swaggerDefinition = {
     { name: 'Users', description: 'Gestión de usuarios' },
     { name: 'Personas', description: 'Gestión de personas' },
     { name: 'Profesores', description: 'Gestión de profesores' },
+    { name: 'Torneos', description: 'Gestión de torneos' },
     { name: 'Auth - Development', description: 'Endpoints de desarrollo para autenticación (solo en dev)' }
   ]
 };
@@ -68,6 +70,7 @@ const completeSwaggerSpec = {
     ...userSwaggerDocs,
     ...personaSwaggerDocs,
     ...profesorSwaggerDocs,
+    ...torneoSwaggerDocs,
     // Incluir rutas de desarrollo solo si estamos en entorno de desarrollo
     ...(config.env === 'development' ? authDevSwaggerDocs : {})
   }
