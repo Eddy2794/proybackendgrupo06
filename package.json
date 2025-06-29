@@ -7,9 +7,13 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
+    "dev:simple": "NODE_ENV=development nodemon src/server.js",
     "test": "mocha test/**/*.test.js --timeout 10000",
     "test:watch": "mocha test/**/*.test.js --watch",
     "test:integration": "mocha test/integration.test.js --timeout 15000",
+    "test:transactions": "mocha test/transaction.test.js --timeout 15000",
+    "test:validations": "node test-validations.js",
+    "test:all": "npm run test && npm run test:transactions",
     "setup": "node scripts/create-env.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
@@ -22,13 +26,14 @@
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
     "csrf-csrf": "^4.0.3",
-    "csurf": "^1.2.2",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-mongo-sanitize": "^2.2.0",
-    "express-rate-limit": "^7.5.0",
+    "express-rate-limit": "^7.5.1",
     "express-validator": "^7.2.1",
     "express-xss-sanitizer": "^2.0.0",
     "helmet": "^8.1.0",
@@ -36,10 +41,11 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.0",
     "morgan": "^1.10.0",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "winston": "^3.17.0",
-    "xss-clean": "^0.1.4"
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "chai": "^5.2.0",
@@ -48,5 +54,11 @@
     "nodemon": "^3.1.10",
     "prettier": "^3.5.3",
     "supertest": "^7.1.1"
+  },
+  "overrides": {
+    "glob": "^11.0.0",
+    "lodash.get": false,
+    "lodash.isequal": false,
+    "xss-clean": false
   }
 }

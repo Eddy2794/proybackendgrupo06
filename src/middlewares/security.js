@@ -1,15 +1,38 @@
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import { doubleCsrf } from 'csrf-csrf';
 
+// Configuración de rate limiting
 const rateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
   max: 100, // máximo 100 requests por IP
   standardHeaders: true,
   legacyHeaders: false,
   message: {
-    message: 'Demasiadas peticiones desde esta IP, intenta de nuevo en 15 minutos.'
+    error: 'Demasiadas peticiones desde esta IP',
+    message: 'Intenta de nuevo en 15 minutos.',
+    retryAfter: '15 minutes'
   }
 });
+
+// Configuración de CSRF más segura
+const csrfOptions = {
+  getSecret: () => process.env.CSRF_SECRET || 'your-csrf-secret-key-here',
+  cookieName: '__Host-psifi.x-csrf-token',
+  cookieOptions: {
+    httpOnly: true,
+    sameSite: 'strict',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/'
+  },
+  size: 64,
+  ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
+  getTokenFromRequest: (req) => {
+    return req.headers['x-csrf-token'] || req.body._csrf;
+  }
+};
+
+const { doubleCsrfProtection, generateToken } = doubleCsrf(csrfOptions);
 
 // Middleware simple para sanitización manual (compatible con Express 5)
 const sanitizeInput = (req, res, next) => {
@@ -43,8 +66,19 @@ export const applySecurity = (app, useCsrf = false) => {
         styleSrc: ["'self'", "'unsafe-inline'"],
         scriptSrc: ["'self'"],
         imgSrc: ["'self'", "data:", "https:"],
+        connectSrc: ["'self'"],
+        fontSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'none'"]
       },
     },
+    crossOriginEmbedderPolicy: false,
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true
+    }
   }));
   
   // Sanitización personalizada (compatible con Express 5)
@@ -52,11 +86,25 @@ export const applySecurity = (app, useCsrf = false) => {
   
   // Rate limiting
   app.use(rateLimiter);
+
+  // CSRF Protection (opcional)
+  if (useCsrf && process.env.NODE_ENV === 'production') {
+    app.use(doubleCsrfProtection);
+    
+    // Endpoint para obtener el token CSRF
+    app.get('/api/csrf-token', (req, res) => {
+      const token = generateToken(req, res);
+      res.json({ csrfToken: token });
+    });
+  }
 };
 
 export const csrfErrorHandler = (err, req, res, next) => {
-  if (err && err.code === 'EBADCSRFTOKEN') {
-    return res.status(403).json({ message: "Token CSRF inválido o ausente." });
+  if (err && (err.code === 'EBADCSRFTOKEN' || err.message?.includes('csrf'))) {
+    return res.status(403).json({ 
+      error: 'CSRF Token inválido',
+      message: 'Token CSRF inválido o ausente. Obtén un nuevo token desde /api/csrf-token'
+    });
   }
   next(err);
 };
