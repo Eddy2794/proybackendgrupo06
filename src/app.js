@@ -25,6 +25,9 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Configurar proxy para obtener IPs reales
+app.set('trust proxy', true);
+
 // Configuración de CORS
 const corsOptions = {
   origin: ['http://localhost:4200', 'http://127.0.0.1:4200'],
