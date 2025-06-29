@@ -11,6 +11,7 @@ import torneoRoutes from '../modules/torneo/routes/torneo.routes.js'
 
 // Importar rutas de desarrollo
 import authDevRoutes from '../modules/auth/route/auth.dev.routes.js';
+import authOAuthRoutes from '../modules/auth/route/auth.oauth.routes.js';
 
 // Crear router principal de la API
 const router = express.Router();
@@ -23,6 +24,7 @@ router.use((req, res, next) => {
 
 // Cargar las rutas con documentación automática
 router.use('/auth', authFluentRoutes);
+router.use('/auth', authOAuthRoutes);
 router.use('/users', userFluentRoutes);
 router.use('/personas', personaFluentRoutes);
 router.use('/profesores', profesorRoutes);
