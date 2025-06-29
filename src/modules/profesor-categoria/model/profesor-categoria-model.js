@@ -4,15 +4,13 @@ const profesorCategoriaSchema = new mongoose.Schema({
     profesor: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Profesor',
-        required: [true, 'La referencia a profesor es requerida'],
-        unique: true
+        required: [true, 'La referencia a profesor es requerida']
       },
     
     categoria: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Categoria',
-        required: [true, 'La referencia a categoria es requerida'],
-        unique: true
+        required: [true, 'La referencia a categoria es requerida']
     },
     fecha_asignacion: {
         type: Date,
@@ -25,11 +23,6 @@ const profesorCategoriaSchema = new mongoose.Schema({
         trim: true,
         minlength: 2,
         maxlength: 255
-    },
-    dias_asignados: {
-        type: [String],
-        required: [true, 'Los dias asignados son requeridos'],
-        enum: ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo'],
     },
     activo: {
         type: Boolean,

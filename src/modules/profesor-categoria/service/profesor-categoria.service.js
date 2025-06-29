@@ -1,48 +1,87 @@
 import * as profesorRepository from '../repository/profesor-categoria-repository.js';
 
-export const getProfesores = async () => {
-    const profesores = await profesorRepository.findAll();  //fijarse se ponemos que salte error si no hay profesores
-    if (!profesores) {
-        throw new Error('No hay profesores');
+export const getProfesores = async (queryOptions = {}) => {
+    const { page = 1, limit = 10, sort = '-createdAt', search, activo } = queryOptions;
+    
+    const profesores = await profesorRepository.findAll({ page, limit, sort, search, activo });
+    
+    if (!profesores || profesores.length === 0) {
+        throw new Error('No se encontraron relaciones profesor-categoría');
     }
+    
     return profesores;
 };
 
-export const getProfesoresByCategoria = async (idCategoria) => {
-    const profesores = await profesorRepository.findByCategoria(idCategoria);
-    if (!profesores) {
-        throw new Error('No hay profesores en esta categoria');
+export const getProfesoresByCategoria = async (idCategoria, queryOptions = {}) => {
+    const { page = 1, limit = 10, sort = '-createdAt', activo = true } = queryOptions;
+    
+    const profesores = await profesorRepository.findByCategoria(idCategoria, { 
+        page, 
+        limit, 
+        sort, 
+        activo
+    });
+    
+    if (!profesores || profesores.length === 0) {
+        throw new Error('No se encontraron profesores en esta categoría');
     }
+    
     return profesores;
 };
 
-export const getCategoriaByProfesor = async (idProfesor) => {
-    const categorias = await profesorRepository.findByProfesor(idProfesor);
-    if (!categorias) {
-        throw new Error('No hay categorias en esta profesor');
+export const getCategoriaByProfesor = async (idProfesor, queryOptions = {}) => {
+    const { page = 1, limit = 10, sort = '-createdAt', activo = true } = queryOptions;
+    
+    const categorias = await profesorRepository.findByProfesor(idProfesor, { 
+        page, 
+        limit, 
+        sort, 
+        activo
+    });
+    
+    if (!categorias || categorias.length === 0) {
+        throw new Error('No se encontraron categorías para este profesor');
     }
+    
     return categorias;
 };
+
 export const createProfesorCategoria = async (profesorCategoriaData) => {
     const profesorCategoria = await profesorRepository.create(profesorCategoriaData);
+    
     if (!profesorCategoria) {
-        throw new Error('Error al crear el profesor categoria');
+        throw new Error('Error al crear la relación profesor-categoría');
     }
+    
     return profesorCategoria;
 };
 
-export const updateProfesorCategoria = async (id, profesorCategoriaData) => { 
+export const updateProfesorCategoria = async (id, profesorCategoriaData) => {
     const profesorCategoria = await profesorRepository.updateById(id, profesorCategoriaData);
+    
     if (!profesorCategoria) {
-        throw new Error('Error al actualizar el profesor categoria');
+        throw new Error('Error al actualizar la relación profesor-categoría');
     }
+    
     return profesorCategoria;
 };
 
-export const deleteProfesorCategoria = async (id) => {//eliminacion logica
+export const deleteProfesorCategoria = async (id) => {
     const profesorCategoria = await profesorRepository.deleteById(id);
+    
     if (!profesorCategoria) {
-        throw new Error('Error al eliminar el profesor categoria');
+        throw new Error('Error al eliminar la relación profesor-categoría');
     }
-    return profesor;
+    
+    return profesorCategoria;
+};
+
+export const getProfesorCategoriaById = async (id) => {
+    const profesorCategoria = await profesorRepository.findById(id);
+    
+    if (!profesorCategoria) {
+        throw new Error('Relación profesor-categoría no encontrada');
+    }
+    
+    return profesorCategoria;
 };

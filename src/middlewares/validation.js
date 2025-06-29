@@ -33,7 +33,7 @@ export const validateSchema = (schema, source = 'body') => {
     if (source === 'params') {
       req.params = value;
     } else if (source === 'query') {
-      req.query = value;
+      Object.assign(req.query, value); 
     } else {
       req.body = value;
     }
