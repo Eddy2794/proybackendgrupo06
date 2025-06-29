@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Validar variables de entorno requeridas
-const requiredEnvVars = ['DB_URI', 'JWT_SECRET'];
+const requiredEnvVars = ['DB_URI', 'JWT_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_CALLBACK_URL'];
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingEnvVars.length > 0) {
@@ -18,6 +18,11 @@ const config = {
   dbUri: process.env.DB_URI,
   jwtSecret: process.env.JWT_SECRET,
   jwtExpires: process.env.JWT_EXPIRES || '24h',
+  googleClientId: process.env.GOOGLE_CLIENT_ID,
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  googleCallbackUrl: process.env.GOOGLE_CALLBACK_URL,
+  // URL de la aplicación frontend Angular para redirecciones OAuth
+  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200',
   bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS) || 12,
   corsOrigin: process.env.CORS_ORIGIN || '*',
   rateLimit: {

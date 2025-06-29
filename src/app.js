@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import cookieParser from 'cookie-parser';
+import passport from './config/passport.js';
 import morgan from 'morgan';
 import cors from 'cors';
 import { applySecurity, csrfErrorHandler } from './middlewares/security.js';
@@ -72,6 +73,7 @@ app.use(morgan('combined', {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(passport.initialize());
 
 // Middlewares de seguridad avanzada
 app.use(sanitizeInputs);
