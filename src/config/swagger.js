@@ -4,6 +4,7 @@ import { userSwaggerDocs } from '../modules/user/route/user.fluent.routes.js';
 import { personaSwaggerDocs } from '../modules/persona/route/persona.fluent.routes.js';
 import { authDevSwaggerDocs } from '../modules/auth/route/auth.dev.routes.js';
 import { profesorSwaggerDocs } from '../modules/profesor/routes/profesor-routes.js';
+import { torneoSwaggerDocs } from '../modules/torneo/routes/torneo.routes.js';
 import { alumnoSwaggerDocs } from '../modules/alumno/route/alumno.route.js';
 import { alumnoCategoriaSwaggerDocs } from '../modules/alumno_categoria/route/alumno_categoria.route.js';
 import { cuotaSwaggerDocs } from '../modules/cuota/route/cuota.route.js';
@@ -58,6 +59,7 @@ const swaggerDefinition = {
     { name: 'Users', description: 'Gestión de usuarios' },
     { name: 'Personas', description: 'Gestión de personas' },
     { name: 'Profesores', description: 'Gestión de profesores' },
+    { name: 'Torneos', description: 'Gestión de torneos' },
     { name: 'Alumnos', description: 'Gestión de alumnos' },
     { name: 'Auth - Development', description: 'Endpoints de desarrollo para autenticación (solo en dev)' }
   ]
@@ -71,6 +73,7 @@ const completeSwaggerSpec = {
     ...userSwaggerDocs,
     ...personaSwaggerDocs,
     ...profesorSwaggerDocs,
+    ...torneoSwaggerDocs,
     ...alumnoSwaggerDocs,
     ...alumnoCategoriaSwaggerDocs,
     ...cuotaSwaggerDocs,

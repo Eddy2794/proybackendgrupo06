@@ -7,13 +7,14 @@ import authFluentRoutes from '../modules/auth/route/auth.fluent.routes.js';
 import userFluentRoutes from '../modules/user/route/user.fluent.routes.js';
 import personaFluentRoutes from '../modules/persona/route/persona.fluent.routes.js';
 import profesorRoutes from '../modules/profesor/routes/profesor-routes.js';
-import alumnoRoutes from '../modules/alumno/route/alumno.route.js';
+import torneoRoutes from '../modules/torneo/routes/torneo.routes.js'import alumnoRoutes from '../modules/alumno/route/alumno.route.js';
 import alumnoCategoriaRoutes from '../modules/alumno_categoria/route/alumno_categoria.route.js';
 import categoriaRoutes from '../modules/categoria/route/categoria.route.js';
 import cuotaRoutes from '../modules/cuota/route/cuota.route.js';
 
 // Importar rutas de desarrollo
 import authDevRoutes from '../modules/auth/route/auth.dev.routes.js';
+import authOAuthRoutes from '../modules/auth/route/auth.oauth.routes.js';
 
 // Crear router principal de la API
 const router = express.Router();
@@ -26,9 +27,11 @@ router.use((req, res, next) => {
 
 // Cargar las rutas con documentación automática
 router.use('/auth', authFluentRoutes);
+router.use('/auth', authOAuthRoutes);
 router.use('/users', userFluentRoutes);
 router.use('/personas', personaFluentRoutes);
 router.use('/profesores', profesorRoutes);
+router.use('/torneos', torneoRoutes);
 router.use('/alumnos', alumnoRoutes);
 router.use('/alumno-categorias', alumnoCategoriaRoutes);
 router.use('/categorias', categoriaRoutes);
@@ -47,6 +50,7 @@ router.get('/', (req, res) => {
     users: '/api/users',
     personas: '/api/personas',
     profesores: '/api/profesores',
+    torneos: 'api/torneos',
     docs: '/docs',
     health: '/health'
   };
