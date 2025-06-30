@@ -11,7 +11,6 @@ import torneoRoutes from '../modules/torneo/routes/torneo.routes.js';
 import profesorCategoriaRoutes from '../modules/profesor-categoria/routes/profesor-categoria-routes.js';
 
 
-
 // Importar rutas de desarrollo
 import authDevRoutes from '../modules/auth/route/auth.dev.routes.js';
 import authOAuthRoutes from '../modules/auth/route/auth.oauth.routes.js';
