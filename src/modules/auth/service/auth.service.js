@@ -242,6 +242,25 @@ export const login = async (loginData) => {
     
     // Actualizar último login
     user.ultimoLogin = new Date();
+    
+    // Registrar en historial de autenticación si existe
+    if (!user.historialAuth) {
+      user.historialAuth = [];
+    }
+    
+    user.historialAuth.push({
+      fechaLogin: new Date(),
+      exitoso: true,
+      metodo: 'credentials',
+      userAgent: loginData.userAgent || 'Unknown',
+      ip: loginData.ip || '0.0.0.0'
+    });
+    
+    // Mantener solo los últimos 10 registros
+    if (user.historialAuth.length > 10) {
+      user.historialAuth = user.historialAuth.slice(-10);
+    }
+    
     await user.save();
     
     const token = jwt.sign({ userId: user._id, rol: user.rol }, config.jwtSecret, { expiresIn: '8h' });
@@ -254,6 +273,8 @@ export const login = async (loginData) => {
         rol: user.rol,
         estado: user.estado,
         ultimoLogin: user.ultimoLogin,
+        emailVerificado: user.emailVerificado,
+        imagenPerfil: user.imagenPerfil,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         persona: user.persona
@@ -570,6 +591,25 @@ export const loginDev = async ({ username, password }) => {
   // Reset intentos de login y actualizar último login
   await user.resetLoginAttempts();
   user.ultimoLogin = new Date();
+  
+  // Registrar en historial de autenticación si existe (solo en desarrollo)
+  if (!user.historialAuth) {
+    user.historialAuth = [];
+  }
+  
+  user.historialAuth.push({
+    fechaLogin: new Date(),
+    exitoso: true,
+    metodo: 'dev-credentials',
+    userAgent: 'Development Login',
+    ip: '127.0.0.1'
+  });
+  
+  // Mantener solo los últimos 10 registros
+  if (user.historialAuth.length > 10) {
+    user.historialAuth = user.historialAuth.slice(-10);
+  }
+  
   await user.save();
   
   // Generar token JWT
@@ -625,4 +665,137 @@ export const changePasswordDev = async (userId, { currentPassword, newPassword }
   await user.save();
   
   return { message: 'Contraseña actualizada correctamente' };
+};
+
+/**
+ * Obtener perfil completo del usuario
+ */
+export const getUserProfile = async (userId) => {
+  try {
+    const user = await userRepo.findById(userId);
+    if (!user) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    // Asegurar que la persona esté poblada
+    await user.populate('persona');
+
+    return {
+      _id: user._id,
+      username: user.username,
+      rol: user.rol,
+      estado: user.estado,
+      ultimoLogin: user.ultimoLogin,
+      emailVerificado: user.emailVerificado,
+      imagenPerfil: user.imagenPerfil,
+      fechaRegistro: user.createdAt,
+      configuraciones: user.configuraciones,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      persona: user.persona
+    };
+  } catch (error) {
+    console.error('Error obteniendo perfil del usuario:', error);
+    throw new Error('Error obteniendo perfil del usuario');
+  }
+};
+
+/**
+ * Actualizar perfil del usuario
+ */
+export const updateUserProfile = async (userId, updateData) => {
+  try {
+    const user = await userRepo.findById(userId);
+    if (!user) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    // Actualizar configuraciones del usuario si se proporcionan
+    if (updateData.configuraciones) {
+      user.configuraciones = {
+        ...user.configuraciones,
+        ...updateData.configuraciones
+      };
+    }
+
+    // Actualizar imagen de perfil si se proporciona
+    if (updateData.imagenPerfil !== undefined) {
+      user.imagenPerfil = updateData.imagenPerfil;
+    }
+
+    // Si hay datos de persona, actualizarlos
+    if (updateData.persona && user.persona) {
+      await user.populate('persona');
+      
+      // Actualizar los campos de persona
+      const personaId = user.persona._id || user.persona;
+      const updatedPersona = await personaService.updatePersona(personaId, updateData.persona);
+      
+      if (!updatedPersona) {
+        throw new Error('Error actualizando datos de persona');
+      }
+    }
+
+    // Guardar cambios del usuario
+    await user.save();
+
+    // Retornar perfil actualizado
+    return await getUserProfile(userId);
+  } catch (error) {
+    console.error('Error actualizando perfil:', error);
+    if (error.message.includes('no encontrado') || error.message.includes('actualizando')) {
+      throw error;
+    }
+    throw new Error('Error actualizando perfil del usuario');
+  }
+};
+
+/**
+ * Actualizar imagen de perfil del usuario
+ */
+export const updateProfileImage = async (userId, imagenPerfil) => {
+  try {
+    const user = await userRepo.findById(userId);
+    if (!user) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    // Actualizar imagen de perfil
+    user.imagenPerfil = imagenPerfil;
+    await user.save();
+
+    // Retornar perfil actualizado
+    return await getUserProfile(userId);
+  } catch (error) {
+    console.error('Error actualizando imagen de perfil:', error);
+    if (error.message.includes('no encontrado')) {
+      throw error;
+    }
+    throw new Error('Error actualizando imagen de perfil');
+  }
+};
+
+/**
+ * Eliminar imagen de perfil del usuario
+ */
+export const removeProfileImage = async (userId) => {
+  try {
+    const user = await userRepo.findById(userId);
+    if (!user) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    // Eliminar imagen de perfil
+    user.imagenPerfil = null;
+    await user.save();
+
+    // Retornar perfil actualizado
+    return await getUserProfile(userId);
+  } catch (error) {
+    console.error('Error eliminando imagen de perfil:', error);
+    if (error.message.includes('no encontrado')) {
+      throw error;
+    }
+    throw new Error('Error eliminando imagen de perfil');
+  }
 };

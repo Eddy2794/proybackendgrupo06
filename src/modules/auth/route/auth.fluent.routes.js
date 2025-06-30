@@ -46,6 +46,9 @@ router.post('/login', ...loginMiddlewares, authController.login);
 router.post('/change-password', ...changePasswordMiddlewares, authController.changePassword);
 router.post('/logout', ...authRequiredMiddlewares, authController.logout);
 router.get('/profile', ...authRequiredMiddlewares, authController.getProfile);
+router.put('/profile', ...authRequiredMiddlewares, authController.updateProfile);
+router.put('/profile/image', ...authRequiredMiddlewares, authController.updateProfileImage);
+router.delete('/profile/image', ...authRequiredMiddlewares, authController.removeProfileImage);
 
 // Documentación automática con mapeo de validadores
 const authRouteConfigs = [
@@ -65,6 +68,18 @@ const authRouteConfigs = [
   }),
   routeConfig('GET', '/profile', null, 'Obtener perfil de usuario', {
     description: 'Obtiene el perfil del usuario autenticado',
+    auth: true
+  }),
+  routeConfig('PUT', '/profile', null, 'Actualizar perfil de usuario', {
+    description: 'Actualiza el perfil del usuario autenticado',
+    auth: true
+  }),
+  routeConfig('PUT', '/profile/image', null, 'Actualizar imagen de perfil', {
+    description: 'Actualiza la imagen de perfil del usuario autenticado (base64)',
+    auth: true
+  }),
+  routeConfig('DELETE', '/profile/image', null, 'Eliminar imagen de perfil', {
+    description: 'Elimina la imagen de perfil del usuario autenticado',
     auth: true
   })
 ];

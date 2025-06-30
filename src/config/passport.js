@@ -15,8 +15,10 @@ passport.use(new GoogleStrategy({
   try {
     const email = profile.emails && profile.emails[0]?.value;
     if (!email) return done(new Error('No email from Google'), null);
+    
     // Buscar usuario por email
     let user = await userRepo.findByUsername(email);
+    
     if (!user) {
       // Crear persona y usuario
       const personaData = {
@@ -33,9 +35,56 @@ passport.use(new GoogleStrategy({
       const password = Math.random().toString(36).slice(-8);
       const result = await authService.register({ personaData, username, password });
       user = result.user;
+      
+      // Establecer último acceso para nuevo usuario
+      user.ultimoLogin = new Date();
+      
+      // Inicializar historial de autenticación si no existe
+      if (!user.historialAuth) {
+        user.historialAuth = [];
+      }
+      
+      // Agregar entrada al historial de registro
+      user.historialAuth.push({
+        fechaLogin: new Date(),
+        exitoso: true,
+        metodo: 'google-oauth-register',
+        userAgent: 'Google OAuth - Registro',
+        ip: '0.0.0.0'
+      });
+      
+      await user.save();
+      console.log(`🆕 Nuevo usuario registrado via Google OAuth: ${email} - Último acceso establecido`);
+    } else {
+      // Usuario existente - actualizar último acceso y registrar autenticación
+      user.ultimoLogin = new Date();
+      
+      // Inicializar historial de autenticación si no existe
+      if (!user.historialAuth) {
+        user.historialAuth = [];
+      }
+      
+      // Agregar entrada al historial de autenticación
+      user.historialAuth.push({
+        fechaLogin: new Date(),
+        exitoso: true,
+        metodo: 'google-oauth',
+        userAgent: 'Google OAuth - Login',
+        ip: '0.0.0.0'
+      });
+      
+      // Mantener solo los últimos 10 registros
+      if (user.historialAuth.length > 10) {
+        user.historialAuth = user.historialAuth.slice(-10);
+      }
+      
+      await user.save();
+      console.log(`🔄 Usuario existente autenticado via Google OAuth: ${email}, último acceso actualizado`);
     }
+    
     return done(null, user);
   } catch (err) {
+    console.error('Error en autenticación Google OAuth:', err);
     return done(err, null);
   }
 }));

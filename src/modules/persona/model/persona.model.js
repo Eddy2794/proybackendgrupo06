@@ -10,14 +10,12 @@ const personaSchema = new mongoose.Schema({
   nombres: {
     type: String,
     required: [true, 'Los nombres son requeridos'],
-    trim: true,
-    index: true
+    trim: true
   },
   apellidos: {
     type: String,
     required: [true, 'Los apellidos son requeridos'],
-    trim: true,
-    index: true
+    trim: true
   },
   tipoDocumento: {
     type: String,
@@ -32,8 +30,7 @@ const personaSchema = new mongoose.Schema({
     type: String,
     required: [true, 'El número de documento es requerido'],
     unique: true,
-    trim: true,
-    index: true
+    trim: true
   },
   fechaNacimiento: {
     type: Date,
@@ -56,8 +53,7 @@ const personaSchema = new mongoose.Schema({
     required: [true, 'El email es requerido'],
     unique: true,
     lowercase: true,
-    trim: true,
-    index: true
+    trim: true
   },
   direccion: {
     calle: {
@@ -88,8 +84,7 @@ const personaSchema = new mongoose.Schema({
       values: ESTADOS_PERSONA,
       message: 'Estado no válido'
     },
-    default: 'ACTIVO',
-    index: true
+    default: 'ACTIVO'
   }
 }, {
   timestamps: true

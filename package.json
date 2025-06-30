@@ -19,7 +19,9 @@
     "lint:fix": "eslint src/ --fix",
     "docker:build": "docker build -t proyecto-backend .",
     "docker:run": "docker run -p 3000:3000 proyecto-backend",
-    "docker:dev": "docker-compose up -d"
+    "docker:dev": "docker-compose up -d",
+    "migrate": "node migration/run-migrations.js",
+    "migrate:auth-history": "node migration/historial-auth-migration.js"
   },
   "keywords": [],
   "author": "",
@@ -39,6 +41,7 @@
     "helmet": "^8.1.0",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
+    "mercadopago": "^2.8.0",
     "mongoose": "^8.16.0",
     "morgan": "^1.10.0",
     "passport": "^0.7.0",

@@ -20,7 +20,23 @@ export class AuthController {
 
   async login(req, res, next) {
     try {
-      const result = await service.login(req.body);
+      // Obtener información del request para el historial de autenticación
+      const ip = req.ip || 
+                 req.connection?.remoteAddress || 
+                 req.socket?.remoteAddress ||
+                 req.headers['x-forwarded-for']?.split(',')[0] ||
+                 '0.0.0.0';
+      
+      const userAgent = req.headers['user-agent'] || 'Unknown';
+      
+      // Agregar información de request a los datos de login
+      const loginData = {
+        ...req.body,
+        ip,
+        userAgent
+      };
+      
+      const result = await service.login(loginData);
       return res.success(result.message, {
         token: result.token,
         user: result.user
@@ -93,6 +109,55 @@ export class AuthController {
       const { userId } = req.user;
       const user = await service.getUserProfile(userId);
       return res.success('Perfil obtenido exitosamente', user);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateProfile(req, res, next) {
+    try {
+      const { userId } = req.user;
+      const result = await service.updateUserProfile(userId, req.body);
+      return res.success('Perfil actualizado exitosamente', result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateProfileImage(req, res, next) {
+    try {
+      const { userId } = req.user;
+      const { imagenPerfil } = req.body;
+      
+      if (!imagenPerfil) {
+        return res.error('La imagen es requerida', 400);
+      }
+
+      // Validar formato base64 de imagen
+      const base64Regex = /^data:image\/(jpeg|jpg|png|gif|webp);base64,/;
+      if (!base64Regex.test(imagenPerfil)) {
+        return res.error('Formato de imagen inválido. Solo se permiten JPEG, PNG, GIF, WEBP en base64', 400);
+      }
+
+      // Validar tamaño (máximo 5MB)
+      const sizeInBytes = (imagenPerfil.length * 3) / 4;
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (sizeInBytes > maxSize) {
+        return res.error('La imagen es demasiado grande. Máximo 5MB', 400);
+      }
+
+      const result = await service.updateProfileImage(userId, imagenPerfil);
+      return res.success('Imagen de perfil actualizada exitosamente', result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async removeProfileImage(req, res, next) {
+    try {
+      const { userId } = req.user;
+      const result = await service.removeProfileImage(userId);
+      return res.success('Imagen de perfil eliminada exitosamente', result);
     } catch (error) {
       next(error);
     }
