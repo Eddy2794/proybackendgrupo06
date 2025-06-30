@@ -13,6 +13,7 @@ import alumnoCategoriaRoutes from '../modules/alumno_categoria/route/alumno_cate
 import cuotaRoutes from '../modules/cuota/route/cuota.route.js';
 import categoriaRoutes from '../modules/categoria/route/categoria.routes.js';
 import profesorCategoriaRoutes from '../modules/profesor-categoria/routes/profesor-categoria-routes.js';
+import torneoCategoriaRoutes from '../modules/torneo-categoria/routes/torneo-categoria-routes.js';
 
 // Importar rutas de MercadoPago
 import pagoRoutes from '../modules/pago/route/pago.routes.js';
@@ -39,6 +40,7 @@ router.use('/personas', personaFluentRoutes);
 router.use('/profesores', profesorRoutes);
 router.use('/profesores-categorias', profesorCategoriaRoutes);
 router.use('/torneos', torneoRoutes);
+router.use('/torneos-categorias', torneoCategoriaRoutes);
 
 // Rutas de MercadoPago y pagos
 router.use('/pagos', pagoRoutes);
@@ -62,6 +64,7 @@ router.get('/', (req, res) => {
     personas: '/api/personas',
     profesores: '/api/profesores',
     torneos: '/api/torneos',
+    torneoCategorias: '/api/torneos-categorias',
     pagos: '/api/pagos',
     categorias: '/api/categorias',
     docs: '/docs',

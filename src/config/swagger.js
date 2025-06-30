@@ -9,6 +9,7 @@ import { alumnoSwaggerDocs } from '../modules/alumno/route/alumno.route.js';
 import { alumnoCategoriaSwaggerDocs } from '../modules/alumno_categoria/route/alumno_categoria.route.js';
 import { cuotaSwaggerDocs } from '../modules/cuota/route/cuota.route.js';
 import { categoriaSwaggerDocs } from '../modules/categoria/route/categoria.routes.js';
+import { torneoCategoriaSwaggerDocs } from '../modules/torneo-categoria/routes/torneo-categoria-routes.js';
 import config from './index.js';
 
 // Configuración base de Swagger con documentación automática
@@ -61,6 +62,7 @@ const swaggerDefinition = {
     { name: 'Personas', description: 'Gestión de personas' },
     { name: 'Profesores', description: 'Gestión de profesores' },
     { name: 'Torneos', description: 'Gestión de torneos' },
+    { name: 'Torneos-Categorías', description: 'Gestión de relaciones torneo-categoría' },
     { name: 'Alumnos', description: 'Gestión de alumnos' },
     { name: 'Auth - Development', description: 'Endpoints de desarrollo para autenticación (solo en dev)' }
   ]
@@ -79,6 +81,7 @@ const completeSwaggerSpec = {
     ...alumnoCategoriaSwaggerDocs,
     ...cuotaSwaggerDocs,
     ...categoriaSwaggerDocs,
+    ...torneoCategoriaSwaggerDocs,
     // Incluir rutas de desarrollo solo si estamos en entorno de desarrollo
     ...(config.env === 'development' ? authDevSwaggerDocs : {})
   }
