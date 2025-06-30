@@ -8,6 +8,7 @@ import { torneoSwaggerDocs } from '../modules/torneo/routes/torneo.routes.js';
 import { alumnoSwaggerDocs } from '../modules/alumno/route/alumno.route.js';
 import { alumnoCategoriaSwaggerDocs } from '../modules/alumno_categoria/route/alumno_categoria.route.js';
 import { cuotaSwaggerDocs } from '../modules/cuota/route/cuota.route.js';
+import { categoriaSwaggerDocs } from '../modules/categoria/route/categoria.routes.js';
 import config from './index.js';
 
 // Configuración base de Swagger con documentación automática
@@ -77,6 +78,7 @@ const completeSwaggerSpec = {
     ...alumnoSwaggerDocs,
     ...alumnoCategoriaSwaggerDocs,
     ...cuotaSwaggerDocs,
+    ...categoriaSwaggerDocs,
     // Incluir rutas de desarrollo solo si estamos en entorno de desarrollo
     ...(config.env === 'development' ? authDevSwaggerDocs : {})
   }

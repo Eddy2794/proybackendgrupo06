@@ -11,6 +11,7 @@ import torneoRoutes from '../modules/torneo/routes/torneo.routes.js';
 import alumnoRoutes from '../modules/alumno/route/alumno.route.js';
 import alumnoCategoriaRoutes from '../modules/alumno_categoria/route/alumno_categoria.route.js';
 import cuotaRoutes from '../modules/cuota/route/cuota.route.js';
+import categoriaRoutes from '../modules/categoria/route/categoria.routes.js';
 
 // Importar rutas de desarrollo
 import authDevRoutes from '../modules/auth/route/auth.dev.routes.js';
@@ -35,6 +36,7 @@ router.use('/torneos', torneoRoutes);
 router.use('/alumnos', alumnoRoutes);
 router.use('/alumno-categorias', alumnoCategoriaRoutes);
 router.use('/cuotas', cuotaRoutes);
+router.use('/categorias', categoriaRoutes);
 
 // Rutas de desarrollo (solo disponibles en NODE_ENV=development)
 if (config.env === 'development') {
