@@ -26,7 +26,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // Configurar proxy para obtener IPs reales
-app.set('trust proxy', true);
+// app.set('trust proxy', true); // Solo habilitar si usas proxy inverso (Nginx, Heroku, etc.)
 
 // Configuración de CORS
 const corsOptions = {

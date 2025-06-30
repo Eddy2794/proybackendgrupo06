@@ -24,8 +24,7 @@ const userSchema = new mongoose.Schema({
     required: [true, 'El username es requerido'],
     unique: true,
     trim: true,
-    lowercase: true,
-    index: true
+    lowercase: true
   },
   
   password: {
@@ -49,8 +48,7 @@ const userSchema = new mongoose.Schema({
       values: USER_STATES,
       message: 'Estado no válido'
     },
-    default: 'ACTIVO',
-    index: true
+    default: 'ACTIVO'
   },
   
   configuraciones: {
@@ -74,8 +72,7 @@ const userSchema = new mongoose.Schema({
   
   // Información de autenticación
   ultimoLogin: {
-    type: Date,
-    index: true
+    type: Date
   },
   
   intentosLogin: {

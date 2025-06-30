@@ -10,7 +10,9 @@ import profesorRoutes from '../modules/profesor/routes/profesor-routes.js';
 import torneoRoutes from '../modules/torneo/routes/torneo.routes.js';
 import profesorCategoriaRoutes from '../modules/profesor-categoria/routes/profesor-categoria-routes.js';
 
-
+// Importar rutas de MercadoPago
+import pagoRoutes from '../modules/pago/route/pago.routes.js';
+import categoriaEscuelaRoutes from '../modules/categoria-escuela/route/categoriaEscuela.routes.js';
 
 // Importar rutas de desarrollo
 import authDevRoutes from '../modules/auth/route/auth.dev.routes.js';
@@ -34,6 +36,10 @@ router.use('/profesores', profesorRoutes);
 router.use('/profesores-categorias', profesorCategoriaRoutes);
 router.use('/torneos', torneoRoutes);
 
+// Rutas de MercadoPago y pagos
+router.use('/pagos', pagoRoutes);
+router.use('/categorias', categoriaEscuelaRoutes);
+
 // Rutas de desarrollo (solo disponibles en NODE_ENV=development)
 if (config.env === 'development') {
   router.use('/auth/dev', authDevRoutes);
@@ -47,7 +53,9 @@ router.get('/', (req, res) => {
     users: '/api/users',
     personas: '/api/personas',
     profesores: '/api/profesores',
-    torneos: 'api/torneos',
+    torneos: '/api/torneos',
+    pagos: '/api/pagos',
+    categorias: '/api/categorias',
     docs: '/docs',
     health: '/health'
   };
