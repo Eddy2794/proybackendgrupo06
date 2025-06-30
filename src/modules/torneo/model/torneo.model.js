@@ -38,10 +38,6 @@ const torneoSchema = new mongoose.Schema({
         type: Date,
         required: [true, 'La fecha de inicio es requerido']
     },
-    fecha_fin: {
-        type: Date,
-        required: [true, 'La fecha de fin es requerido']
-    },
     costo_inscripcion: {
         type: Number,
         required: [true, 'El costo de inscripcion es requerido'],
