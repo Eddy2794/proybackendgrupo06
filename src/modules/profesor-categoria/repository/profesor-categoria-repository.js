@@ -33,7 +33,7 @@ export const findByCategoria = async (idCategoria, options = {}) => {
     
     console.log(profesores);
     return {
-        data: profesores,
+        profesores: profesores,
         pagination: {
             page,
             limit,
@@ -70,7 +70,7 @@ export const findByProfesor = async (idProfesor, options = {}) => {
     ]);
     
     return {
-        data: categorias,
+        categorias: categorias,
         pagination: {
             page,
             limit,
@@ -115,9 +115,8 @@ export const findAll = async (options = {}) => {
             .limit(limit),
         ProfesorCategoria.countDocuments(query)
     ]);
-    
     return {
-        data: profesoresCategorias,
+        profesoresCategorias: profesoresCategorias,
         pagination: {
             page,
             limit,
@@ -156,6 +155,29 @@ export const deleteById = async (id) => {
 
 export const findById = async (id) => {
     return await ProfesorCategoria.findById(id)
+        .populate({
+            path: 'profesor',
+            populate: {
+                path: 'persona',
+                select: 'nombres apellidos email telefono dni'
+            }
+        })
+        .populate('categoria');
+};
+
+export const findByProfesorAndCategoria = async (idProfesor, idCategoria, options = {}) => {
+    const { activo = true } = options;
+    
+    const query = { 
+        profesor: idProfesor, 
+        categoria: idCategoria 
+    };
+    
+    if (activo !== undefined) {
+        query.activo = activo;
+    }
+    
+    return await ProfesorCategoria.findOne(query)
         .populate({
             path: 'profesor',
             populate: {
