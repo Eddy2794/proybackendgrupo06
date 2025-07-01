@@ -16,23 +16,10 @@ export const createTorneoCategoriaSchema = Joi.object({
             'string.pattern.base': 'El ID de la categoría debe ser un ObjectId válido',
             'any.required': 'El ID de la categoría es requerido'
         }),
-    max_participantes_categoria: Joi.number()
-        .integer()
-        .min(1)
-        .required()
+    fecha_asignacion: Joi.date()
+        .max('now')
         .messages({
-            'number.base': 'El máximo de participantes debe ser un número',
-            'number.integer': 'El máximo de participantes debe ser un número entero',
-            'number.min': 'El máximo de participantes debe ser mayor a 0',
-            'any.required': 'El máximo de participantes por categoría es requerido'
-        }),
-    costo_inscripcion_categoria: Joi.number()
-        .min(0)
-        .required()
-        .messages({
-            'number.base': 'El costo de inscripción debe ser un número',
-            'number.min': 'El costo de inscripción no puede ser negativo',
-            'any.required': 'El costo de inscripción por categoría es requerido'
+            'date.max': 'La fecha de asignación no puede ser futura'
         }),
     observaciones: Joi.string()
         .max(500)
@@ -41,20 +28,6 @@ export const createTorneoCategoriaSchema = Joi.object({
             'string.max': 'Las observaciones no pueden exceder 500 caracteres'
         }),
     activa: Joi.boolean().default(true),
-    fecha_inicio_inscripciones: Joi.date()
-        .required()
-        .messages({
-            'date.base': 'La fecha de inicio de inscripciones debe ser una fecha válida',
-            'any.required': 'La fecha de inicio de inscripciones es requerida'
-        }),
-    fecha_fin_inscripciones: Joi.date()
-        .greater(Joi.ref('fecha_inicio_inscripciones'))
-        .required()
-        .messages({
-            'date.base': 'La fecha de fin de inscripciones debe ser una fecha válida',
-            'date.greater': 'La fecha de fin debe ser posterior a la fecha de inicio',
-            'any.required': 'La fecha de fin de inscripciones es requerida'
-        })
 });
 
 export const updateTorneoCategoriaSchema = Joi.object({
@@ -68,19 +41,10 @@ export const updateTorneoCategoriaSchema = Joi.object({
         .messages({
             'string.pattern.base': 'El ID de la categoría debe ser un ObjectId válido'
         }),
-    max_participantes_categoria: Joi.number()
-        .integer()
-        .min(1)
+    fecha_asignacion: Joi.date()
+        .max('now')
         .messages({
-            'number.base': 'El máximo de participantes debe ser un número',
-            'number.integer': 'El máximo de participantes debe ser un número entero',
-            'number.min': 'El máximo de participantes debe ser mayor a 0'
-        }),
-    costo_inscripcion_categoria: Joi.number()
-        .min(0)
-        .messages({
-            'number.base': 'El costo de inscripción debe ser un número',
-            'number.min': 'El costo de inscripción no puede ser negativo'
+            'date.max': 'La fecha de asignación no puede ser futura'
         }),
     observaciones: Joi.string()
         .max(500)
@@ -89,20 +53,6 @@ export const updateTorneoCategoriaSchema = Joi.object({
             'string.max': 'Las observaciones no pueden exceder 500 caracteres'
         }),
     activa: Joi.boolean(),
-    fecha_inicio_inscripciones: Joi.date()
-        .messages({
-            'date.base': 'La fecha de inicio de inscripciones debe ser una fecha válida'
-        }),
-    fecha_fin_inscripciones: Joi.date()
-        .when('fecha_inicio_inscripciones', {
-            is: Joi.exist(),
-            then: Joi.date().greater(Joi.ref('fecha_inicio_inscripciones')),
-            otherwise: Joi.date()
-        })
-        .messages({
-            'date.base': 'La fecha de fin de inscripciones debe ser una fecha válida',
-            'date.greater': 'La fecha de fin debe ser posterior a la fecha de inicio'
-        })
 });
 
 // Validación única para todas las queries con paginación
@@ -128,9 +78,9 @@ export const torneoCategoriaQuerySchema = Joi.object({
             'number.max': 'El límite no puede exceder 100'
         }),
     sort: Joi.string()
-        .valid('createdAt', '-createdAt', 'torneo', '-torneo', 'categoria', '-categoria', 
-               'fecha_inicio_inscripciones', '-fecha_inicio_inscripciones', 
-               'fecha_fin_inscripciones', '-fecha_fin_inscripciones')
+        .valid('createdAt', '-createdAt', 'torneo', '-torneo', 'categoria', '-categoria',
+            'fecha_inicio_inscripciones', '-fecha_inicio_inscripciones',
+            'fecha_fin_inscripciones', '-fecha_fin_inscripciones')
         .default('-createdAt')
         .messages({
             'any.only': 'El campo de ordenamiento no es válido'
