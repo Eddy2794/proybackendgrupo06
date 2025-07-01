@@ -9,13 +9,12 @@ import TokenBlacklist from '../model/tokenBlacklist.model.js';
 // Clave para cifrado AES (en producción debe estar en variables de entorno)
 const AES_KEY = process.env.AES_ENCRYPTION_KEY || 'mi-clave-super-secreta-32-chars!!';
 
-export const register = async ({ personaData, username, password }) => {
+export const register = async ({ personaData, username, password, emailVerificadoGoogle }) => {
   // Verificar que el usuario no exista antes de crear nada
   const existingUser = await userRepo.findByUsername(username);
   if (existingUser) {
     throw new Error('El nombre de usuario ya existe');
   }
-
   // Verificar si MongoDB soporta transacciones
   const supportsTransactions = mongoose.connection.db && 
     mongoose.connection.db.serverConfig && 
@@ -40,9 +39,9 @@ export const register = async ({ personaData, username, password }) => {
           username: username.toLowerCase(),
           password,
           estado: process.env.NODE_ENV === 'test' ? 'ACTIVO' : 'ACTIVO',
-          emailVerificado: process.env.NODE_ENV === 'test' ? true : false
+          emailVerificado: emailVerificadoGoogle || false
         };
-        
+
         const user = await userRepo.createWithSession(userData, session);
         await user.populate('persona');
         
@@ -92,9 +91,9 @@ export const register = async ({ personaData, username, password }) => {
         username: username.toLowerCase(),
         password,
         estado: process.env.NODE_ENV === 'test' ? 'ACTIVO' : 'ACTIVO',
-        emailVerificado: process.env.NODE_ENV === 'test' ? true : false
+        emailVerificado: emailVerificadoGoogle || false
       };
-      
+
       // 4. Crear usuario
       const user = await userRepo.create(userData);
       await user.populate('persona');

@@ -4,7 +4,11 @@ export class ProfesorCategoriaController {
     async createProfesorCategoria(req, res, next) {
         try {
             const profesorCategoriaData = req.body;
-            const profesorCategoria = await profesorCategoriaService.createProfesorCategoria(profesorCategoriaData);
+            const existeProfesorCategoria = await profesorCategoriaService.existeProfesorCategoria(profesorCategoriaData.profesor, profesorCategoriaData.categoria);
+            if (existeProfesorCategoria) {
+                return res.error('La relación profesor-categoría ya existe');
+            }
+            const profesorCategoria = await profesorCategoriaService.createProfesorCategoria(profesorCategoriaData);    
             return res.success('Relación profesor-categoría creada exitosamente', profesorCategoria);
         } catch (error) {
             next(error);
@@ -93,6 +97,7 @@ export class ProfesorCategoriaController {
     async getProfesorCategoriaById(req, res, next) {
         try {
             const { id } = req.params;
+            console.log(id);
             const profesorCategoria = await profesorCategoriaService.getProfesorCategoriaById(id);
             return res.success('Relación profesor-categoría obtenida exitosamente', profesorCategoria);
         } catch (error) {

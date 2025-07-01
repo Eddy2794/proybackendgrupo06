@@ -85,3 +85,7 @@ export const getProfesorCategoriaById = async (id) => {
     
     return profesorCategoria;
 };
+export const existeProfesorCategoria = async (idProfesor, idCategoria) => {
+    const profesorCategoria = await profesorRepository.findByProfesorAndCategoria(idProfesor, idCategoria, { activo: true });
+    return profesorCategoria; // Devuelve el objeto si existe, null si no existe
+};  

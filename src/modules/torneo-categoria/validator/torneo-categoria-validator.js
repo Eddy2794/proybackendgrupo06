@@ -1,13 +1,13 @@
 import Joi from 'joi';
 
-// Validaciones para ProfesorCategoria
-export const createProfesorCategoriaSchema = Joi.object({
-    profesor: Joi.string()
+// Validaciones para TorneoCategoria
+export const createTorneoCategoriaSchema = Joi.object({
+    torneo: Joi.string()
         .pattern(/^[0-9a-fA-F]{24}$/)
         .required()
         .messages({
-            'string.pattern.base': 'El ID del profesor debe ser un ObjectId válido',
-            'any.required': 'El ID del profesor es requerido'
+            'string.pattern.base': 'El ID del torneo debe ser un ObjectId válido',
+            'any.required': 'El ID del torneo es requerido'
         }),
     categoria: Joi.string()
         .pattern(/^[0-9a-fA-F]{24}$/)
@@ -22,22 +22,19 @@ export const createProfesorCategoriaSchema = Joi.object({
             'date.max': 'La fecha de asignación no puede ser futura'
         }),
     observaciones: Joi.string()
+        .max(500)
         .allow('')
-        .min(0)
-        .max(255)
         .messages({
-            'string.min': 'Las observaciones deben tener al menos 2 caracteres',
-            'string.max': 'Las observaciones no pueden exceder 255 caracteres',
-            'any.required': 'Las observaciones son requeridas'
+            'string.max': 'Las observaciones no pueden exceder 500 caracteres'
         }),
-    activo: Joi.boolean().default(true)
+    activa: Joi.boolean().default(true),
 });
 
-export const updateProfesorCategoriaSchema = Joi.object({
-    profesor: Joi.string()
+export const updateTorneoCategoriaSchema = Joi.object({
+    torneo: Joi.string()
         .pattern(/^[0-9a-fA-F]{24}$/)
         .messages({
-            'string.pattern.base': 'El ID del profesor debe ser un ObjectId válido'
+            'string.pattern.base': 'El ID del torneo debe ser un ObjectId válido'
         }),
     categoria: Joi.string()
         .pattern(/^[0-9a-fA-F]{24}$/)
@@ -50,18 +47,16 @@ export const updateProfesorCategoriaSchema = Joi.object({
             'date.max': 'La fecha de asignación no puede ser futura'
         }),
     observaciones: Joi.string()
+        .max(500)
         .allow('')
-        .min(0)
-        .max(255)
         .messages({
-            'string.min': 'Las observaciones deben tener al menos 2 caracteres',
-            'string.max': 'Las observaciones no pueden exceder 255 caracteres'
+            'string.max': 'Las observaciones no pueden exceder 500 caracteres'
         }),
-    activo: Joi.boolean()
+    activa: Joi.boolean(),
 });
 
 // Validación única para todas las queries con paginación
-export const profesorCategoriaQuerySchema = Joi.object({
+export const torneoCategoriaQuerySchema = Joi.object({
     page: Joi.number()
         .integer()
         .min(1)
@@ -83,7 +78,9 @@ export const profesorCategoriaQuerySchema = Joi.object({
             'number.max': 'El límite no puede exceder 100'
         }),
     sort: Joi.string()
-        .valid('createdAt', '-createdAt', 'profesor', '-profesor', 'categoria', '-categoria', 'fecha_asignacion', '-fecha_asignacion')
+        .valid('createdAt', '-createdAt', 'torneo', '-torneo', 'categoria', '-categoria',
+            'fecha_inicio_inscripciones', '-fecha_inicio_inscripciones',
+            'fecha_fin_inscripciones', '-fecha_fin_inscripciones')
         .default('-createdAt')
         .messages({
             'any.only': 'El campo de ordenamiento no es válido'
@@ -94,21 +91,9 @@ export const profesorCategoriaQuerySchema = Joi.object({
         .messages({
             'string.max': 'El término de búsqueda no puede exceder 50 caracteres'
         }),
-    activo: Joi.boolean()
+    activa: Joi.boolean()
         .default(true)
         .messages({
-            'boolean.base': 'El filtro activo debe ser true o false'
+            'boolean.base': 'El filtro activa debe ser true o false'
         })
 });
-
-// Validación para ObjectId en parámetros de ruta
-export const objectIdParamSchema = Joi.object({
-    id: Joi.string()
-        .pattern(/^[0-9a-fA-F]{24}$/)
-        .required()
-        .messages({
-            'string.pattern.base': 'El ID debe ser un ObjectId válido',
-            'any.required': 'El ID es requerido'
-        })
-});
-  
