@@ -15,6 +15,28 @@ export const getUser = async (id) => {
   return user;
 };
 
+export const createUser = async (userData) => {
+  // Verificar que el username no exista
+  if (userData.username) {
+    const existingUser = await userRepo.findByUsername(userData.username);
+    if (existingUser) {
+      throw new Error('El nombre de usuario ya está en uso');
+    }
+    userData.username = userData.username.toLowerCase();
+  }
+
+  // Verificar que la persona exista si se proporciona un ID
+  if (userData.persona) {
+    const persona = await personaService.getPersonaById(userData.persona);
+    if (!persona) {
+      throw new Error('La persona especificada no existe');
+    }
+  }
+
+  // Crear el usuario
+  return await userRepo.create(userData);
+};
+
 export const getUserByUsername = async (username) => {
   const user = await userRepo.findByUsername(username);
   if (!user) {

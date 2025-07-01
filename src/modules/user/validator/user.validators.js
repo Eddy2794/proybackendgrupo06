@@ -1,8 +1,8 @@
 import Joi from 'joi';
 
 // Constantes para validaciones
-export const USER_ROLES = ['USER', 'ADMIN', 'MODERATOR'];
-export const USER_STATES = ['ACTIVO', 'INACTIVO', 'SUSPENDIDO'];
+export const USER_ROLES = ['USER', 'ADMIN', 'SUPER_ADMIN', 'TUTOR', 'MODERATOR'];
+export const USER_STATES = ['ACTIVO', 'INACTIVO', 'SUSPENDIDO', 'PENDIENTE_VERIFICACION'];
 
 // Esquemas de validación simplificados
 
@@ -25,7 +25,14 @@ export const createUserSchema = Joi.object({
     
   rol: Joi.string()
     .valid(...USER_ROLES)
-    .default('USER')
+    .default('USER'),
+    
+  estado: Joi.string()
+    .valid(...USER_STATES)
+    .default('ACTIVO'),
+    
+  emailVerificado: Joi.boolean()
+    .default(false)
 });
 
 // Validación para actualización de usuario
@@ -36,11 +43,16 @@ export const updateUserSchema = Joi.object({
     .max(30)
     .lowercase(),
     
+  password: Joi.string()
+    .min(6),
+    
   rol: Joi.string()
     .valid(...USER_ROLES),
     
   estado: Joi.string()
-    .valid(...USER_STATES)
+    .valid(...USER_STATES),
+    
+  emailVerificado: Joi.boolean()
 }).min(1);
 
 // Validación para parámetros de ID

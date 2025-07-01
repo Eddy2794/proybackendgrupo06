@@ -84,6 +84,16 @@ export class AlumnoCategoriaController {
             next(error);
         }
     }
+
+    async getStats(req, res, next) {
+        try {
+            const period = req.query.period || 'month'; // day, month, year
+            const result = await alumnoCategoriaService.getInscripcionesStats(period);
+            return res.success('Estadísticas obtenidas correctamente', result);
+        } catch (error) {
+            next(error);
+        }
+    }
     
 }
 

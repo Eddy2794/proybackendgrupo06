@@ -25,15 +25,15 @@ passport.use(new GoogleStrategy({
         nombres: profile.name.givenName,
         apellidos: profile.name.familyName,
         email,
-        numeroDocumento: '123456789', // Número de documento ficticio
+        numeroDocumento: Math.floor(10000000 + Math.random() * 90000000).toString(), // Número de documento aleatorio de 8 dígitos
         // Asignar fechaNacimiento hace 18 años para evitar validación de edad mínima (mayor de 13)
         fechaNacimiento: new Date(Date.now() - 18 * 365 * 24 * 60 * 60 * 1000).toISOString(),
         genero: 'OTRO',
-        emailVerificado: true,
       };
       const username = email;
       const password = Math.random().toString(36).slice(-8);
-      const result = await authService.register({ personaData, username, password });
+      const emailVerificadoGoogle = true; // Asumimos que el email ya está verificado por Google
+      const result = await authService.register({ personaData, username, password, emailVerificadoGoogle });
       user = result.user;
       
       // Establecer último acceso para nuevo usuario
