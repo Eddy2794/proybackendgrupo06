@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: proybackendgrupo06
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+    # Variables de entorno que deben ser configuradas en Render Dashboard:
+    # DB_URI - URL de MongoDB Atlas
+    # JWT_SECRET - Clave secreta para JWT
+    # GOOGLE_CLIENT_ID - ID del cliente de Google OAuth
+    # GOOGLE_CLIENT_SECRET - Secreto del cliente de Google OAuth
+    # GOOGLE_CALLBACK_URL - URL de callback para Google OAuth
+    # FRONTEND_URL - URL del frontend desplegado
+    # CORS_ORIGIN - Origen permitido para CORS
+    # MP_ACCESS_TOKEN - Token de acceso de MercadoPago
+    # MP_NOTIFICATION_URL - URL para notificaciones de MercadoPago
