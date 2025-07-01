@@ -164,3 +164,26 @@ export const findById = async (id) => {
         })
         .populate('categoria');
 };
+
+export const findByProfesorAndCategoria = async (idProfesor, idCategoria, options = {}) => {
+    const { activo = true } = options;
+    
+    const query = { 
+        profesor: idProfesor, 
+        categoria: idCategoria 
+    };
+    
+    if (activo !== undefined) {
+        query.activo = activo;
+    }
+    
+    return await ProfesorCategoria.findOne(query)
+        .populate({
+            path: 'profesor',
+            populate: {
+                path: 'persona',
+                select: 'nombres apellidos email telefono dni'
+            }
+        })
+        .populate('categoria');
+};

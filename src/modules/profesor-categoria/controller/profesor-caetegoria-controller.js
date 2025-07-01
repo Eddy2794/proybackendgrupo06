@@ -4,8 +4,10 @@ export class ProfesorCategoriaController {
     async createProfesorCategoria(req, res, next) {
         try {
             const profesorCategoriaData = req.body;
-            console.log('entraaaaaaaaaaaaa');
-            console.log(profesorCategoriaData);
+            const existeProfesorCategoria = await profesorCategoriaService.existeProfesorCategoria(profesorCategoriaData.profesor, profesorCategoriaData.categoria);
+            if (existeProfesorCategoria) {
+                return res.error('La relación profesor-categoría ya existe');
+            }
             const profesorCategoria = await profesorCategoriaService.createProfesorCategoria(profesorCategoriaData);    
             return res.success('Relación profesor-categoría creada exitosamente', profesorCategoria);
         } catch (error) {
