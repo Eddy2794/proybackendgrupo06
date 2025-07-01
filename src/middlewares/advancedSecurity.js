@@ -23,7 +23,7 @@ export const authRateLimit = rateLimit({
  */
 export const generalRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // máximo 100 requests por IP
+  max: 1000, // máximo 100 requests por IP
   message: {
     error: 'Demasiadas solicitudes. Intenta de nuevo más tarde.',
     code: 'RATE_LIMIT_EXCEEDED'
