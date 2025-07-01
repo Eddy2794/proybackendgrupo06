@@ -24,6 +24,7 @@ router.delete('/:id', authMiddleware, validateObjectId('id'), alumnoCategoriaCon
 router.patch('/restaurar/:id', authMiddleware, validateObjectId('id'), alumnoCategoriaController.restore);
 router.get('/alumno/:alumnoId', authMiddleware, validateObjectId('alumnoId'), alumnoCategoriaController.getByAlumno);
 router.get('/categoria/:categoriaId', authMiddleware, validateObjectId('categoriaId'), alumnoCategoriaController.getByCategoria);
+router.get('/stats', authMiddleware, alumnoCategoriaController.getStats);
 
 
 //Documentación para Swagger
@@ -62,6 +63,10 @@ const alumnoCategoriaRouteConfigs = [
     }),
     routeConfig('GET', '/categoria/:categoriaId', null, 'Relaciones por categoría', {
         description: 'Obtiene todos los alumnos que pertenecen a una categoría específica',
+        auth: true
+    }),
+    routeConfig('GET', '/stats', null, 'Estadísticas de inscripciones', {
+        description: 'Obtiene estadísticas sobre las inscripciones de alumnos a categorías',
         auth: true
     })
 ];

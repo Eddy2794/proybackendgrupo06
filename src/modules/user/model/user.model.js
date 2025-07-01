@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import simpleSoftDelete from '../../../utils/simpleSoftDelete.js';
 
 // Constantes para el modelo
-const USER_ROLES = ['USER', 'ADMIN', 'MODERATOR'];
+const USER_ROLES = ['USER', 'ADMIN', 'SUPER_ADMIN', 'TUTOR', 'MODERATOR'];
 const USER_STATES = ['ACTIVO', 'INACTIVO', 'SUSPENDIDO', 'PENDIENTE_VERIFICACION'];
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutos

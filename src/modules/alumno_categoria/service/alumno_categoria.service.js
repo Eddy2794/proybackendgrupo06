@@ -99,3 +99,125 @@ export const getAlumnosByCategoria = async (categoriaId) => {
     return await alumnoCategoriaRepo.findByCategoria(categoriaId);
 };
 
+//Obtener estadísticas para dashboard
+export const getInscripcionesStats = async (period = 'month') => {
+    try {
+        // Obtener todas las inscripciones activas con datos de categoría
+        const inscripciones = await alumnoCategoriaRepo.findAllWithCategories();
+        
+        const stats = {
+            totalInscripciones: inscripciones.length,
+            inscripcionesPorCategoria: [],
+            inscripcionesPorDia: [],
+            inscripcionesPorMes: [],
+            inscripcionesPorAno: [],
+            categorias: []
+        };
+
+        // Agrupar por categoría
+        const categoriaMap = new Map();
+        inscripciones.forEach(inscripcion => {
+            const categoriaId = inscripcion.categoria._id.toString();
+            const categoriaNombre = inscripcion.categoria.nombre;
+            
+            if (!categoriaMap.has(categoriaId)) {
+                categoriaMap.set(categoriaId, {
+                    _id: categoriaId,
+                    nombre: categoriaNombre,
+                    cantidad: 0,
+                    inscripciones: []
+                });
+            }
+            
+            const categoria = categoriaMap.get(categoriaId);
+            categoria.cantidad++;
+            categoria.inscripciones.push(inscripcion);
+        });
+
+        // Convertir a arrays
+        categoriaMap.forEach((data, categoriaId) => {
+            stats.inscripcionesPorCategoria.push({
+                categoria: data.nombre,
+                cantidad: data.cantidad
+            });
+            stats.categorias.push({
+                _id: categoriaId,
+                nombre: data.nombre
+            });
+        });
+
+        // Generar datos por período
+        if (period === 'day') {
+            stats.inscripcionesPorDia = generateDayData(inscripciones);
+        } else if (period === 'month') {
+            stats.inscripcionesPorMes = generateMonthData(inscripciones);
+        } else if (period === 'year') {
+            stats.inscripcionesPorAno = generateYearData(inscripciones);
+        }
+
+        return stats;
+    } catch (error) {
+        throw new Error('Error al obtener estadísticas: ' + error.message);
+    }
+};
+
+// Funciones auxiliares para generar datos por período
+function generateDayData(inscripciones) {
+    const dias = [];
+    const now = new Date();
+    
+    for (let i = 6; i >= 0; i--) {
+        const fecha = new Date(now);
+        fecha.setDate(fecha.getDate() - i);
+        const fechaStr = fecha.toISOString().split('T')[0];
+        
+        const cantidad = inscripciones.filter(inscripcion => {
+            const fechaInscripcion = new Date(inscripcion.fecha_inscripcion);
+            return fechaInscripcion.toISOString().split('T')[0] === fechaStr;
+        }).length;
+        
+        dias.push({
+            fecha: fecha.toLocaleDateString('es-ES', { weekday: 'short' }),
+            cantidad
+        });
+    }
+    
+    return dias;
+}
+
+function generateMonthData(inscripciones) {
+    const meses = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    
+    return meses.map((mes, index) => {
+        const cantidad = inscripciones.filter(inscripcion => {
+            const fecha = new Date(inscripcion.fecha_inscripcion);
+            return fecha.getMonth() === index && fecha.getFullYear() === new Date().getFullYear();
+        }).length;
+        
+        return { mes, cantidad };
+    });
+}
+
+function generateYearData(inscripciones) {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    
+    for (let i = 4; i >= 0; i--) {
+        const year = currentYear - i;
+        const cantidad = inscripciones.filter(inscripcion => {
+            const fecha = new Date(inscripcion.fecha_inscripcion);
+            return fecha.getFullYear() === year;
+        }).length;
+        
+        years.push({
+            ano: year.toString(),
+            cantidad
+        });
+    }
+    
+    return years;
+}
+

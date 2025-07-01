@@ -7,7 +7,7 @@ import { createHash, pbkdf2Sync } from 'crypto'; // Usar módulo crypto nativo
  */
 export const authRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 5, // máximo 5 intentos por IP
+  max: 15, // máximo 15 intentos por IP
   message: {
     error: 'Demasiados intentos de login. Intenta de nuevo en 15 minutos.',
     code: 'RATE_LIMIT_EXCEEDED'

@@ -106,3 +106,11 @@ export const findByCategoria = async (categoriaId) => {
         .populate({ path: 'alumno_datos', populate: { path: 'persona' } })
         .populate('categoria_datos');
 };
+
+// Método para obtener todas las inscripciones con datos de categoría para estadísticas
+export const findAllWithCategories = async () => {
+    return await AlumnoCategoria.find({ deleted: null, estado: 'ACTIVO' })
+        .populate('categoria', 'nombre')
+        .populate({ path: 'alumno', populate: { path: 'persona', select: 'nombre apellido' } })
+        .sort({ fecha_inscripcion: -1 });
+};
