@@ -9,12 +9,16 @@ export const createAlumno = async (data) => {
 
 //Obtener alumno por ID
 export const findById = async (id) => {
-    return await Alumno.findById(id).populate('persona_datos');
+    return await Alumno.findById(id)
+        .populate('persona_datos')
+        .populate('tutor_datos');
 };
 
 //Obtener alumno por número de socio
 export const findByNumeroSocio = async (numeroSocio) => {
-    return await Alumno.findOne({ numero_socio: numeroSocio }).populate('persona_datos');
+    return await Alumno.findOne({ numero_socio: numeroSocio })
+        .populate('persona_datos')
+        .populate('tutor_datos');
 };
 
 //Obtener todos los alumnos (paginados)
@@ -29,6 +33,7 @@ export const findAll = async (filter = {}, options = {}) => {
     const alumnos = await Alumno
         .find(query)
         .populate('persona_datos')
+        .populate('tutor_datos')
         .sort(sort)
         .skip(skip)
         .limit(limit);
@@ -48,7 +53,9 @@ export const findAll = async (filter = {}, options = {}) => {
 
 //Actualizar alumno por ID
 export const updateById = async (id, data) => {
-    return await Alumno.findByIdAndUpdate(id, data, { new: true }).populate('persona_datos');
+    return await Alumno.findByIdAndUpdate(id, data, { new: true })
+        .populate('persona_datos')
+        .populate('tutor_datos');
 };
 
 //Eliminación fisica permanente

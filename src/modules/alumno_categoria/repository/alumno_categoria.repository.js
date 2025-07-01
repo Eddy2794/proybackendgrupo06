@@ -19,7 +19,13 @@ export const findAll = async (filter = {}, options = {}) => {
     const query = { deleted: null, ...filter };
 
     const datos = await AlumnoCategoria.find(query)
-        .populate({ path: 'alumno_datos', populate: { path: 'persona' } })
+        .populate({ 
+            path: 'alumno_datos', 
+            populate: { 
+                path: 'persona',
+                select: 'nombres apellidos email telefono'
+            } 
+        })
         .populate('categoria_datos')
         .sort(sort)
         .skip(skip)
