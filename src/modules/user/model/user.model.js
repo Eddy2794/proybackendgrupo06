@@ -24,8 +24,7 @@ const userSchema = new mongoose.Schema({
     required: [true, 'El username es requerido'],
     unique: true,
     trim: true,
-    lowercase: true,
-    index: true
+    lowercase: true
   },
   
   password: {
@@ -49,8 +48,7 @@ const userSchema = new mongoose.Schema({
       values: USER_STATES,
       message: 'Estado no válido'
     },
-    default: 'ACTIVO',
-    index: true
+    default: 'ACTIVO'
   },
   
   configuraciones: {
@@ -74,8 +72,7 @@ const userSchema = new mongoose.Schema({
   
   // Información de autenticación
   ultimoLogin: {
-    type: Date,
-    index: true
+    type: Date
   },
   
   intentosLogin: {
@@ -98,13 +95,53 @@ const userSchema = new mongoose.Schema({
     default: false
   },
   
+  // Imagen de perfil en base64
+  imagenPerfil: {
+    type: String,
+    default: null,
+    validate: {
+      validator: function(v) {
+        // Si no hay valor, es válido (imagen opcional)
+        if (!v) return true;
+        // Si hay valor, debe ser una cadena base64 válida para imagen
+        return /^data:image\/(jpeg|jpg|png|gif|webp);base64,/.test(v);
+      },
+      message: 'La imagen de perfil debe ser un formato válido (JPEG, PNG, GIF, WEBP) en base64'
+    }
+  },
+  
   tokenRecuperacion: {
     type: String
   },
   
   tokenRecuperacionExpira: {
     type: Date
-  }
+  },
+  
+  // Historial de autenticación
+  historialAuth: [{
+    fechaLogin: {
+      type: Date,
+      default: Date.now
+    },
+    exitoso: {
+      type: Boolean,
+      required: true
+    },
+    metodo: {
+      type: String,
+      enum: ['credentials', 'google-oauth', 'google-oauth-register', 'dev-credentials'],
+      required: true
+    },
+    userAgent: {
+      type: String,
+      default: 'Unknown'
+    },
+    ip: {
+      type: String,
+      default: '0.0.0.0'
+    }
+  }]
 }, {
   timestamps: true
 });

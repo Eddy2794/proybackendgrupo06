@@ -33,17 +33,6 @@ export const createTorneoSchema = Joi.object({
     fecha_inicio: Joi.date()
         .min('now')
         .required(),
-    fecha_fin: Joi.date()
-        .min('now')
-        .required()
-        .custom((value, helpers) => {
-            const { fecha_inicio } = helpers.state.ancestors[0];
-            if (fecha_inicio && value < new Date(fecha_inicio)) {
-                return helpers.message('La fecha de fin no puede ser anterior a la fecha de inicio');
-            }
-            return value;
-        }),
-
     activo: Joi.boolean()
         .default(true),
 });
@@ -73,15 +62,6 @@ export const updateTorneoSchema = Joi.object({
         .min(0),
     fecha_inicio: Joi.date()
         .min('now'),
-    fecha_fin: Joi.date()
-        .max('now')
-        .custom((value, helpers) => {
-            const { fecha_inicio } = helpers.state.ancestors[0];
-            if (fecha_inicio && value < new Date(fecha_inicio)) {
-                return helpers.message('La fecha de fin no puede ser anterior a la fecha de inicio');
-            }
-            return value;
-        }),
     activo: Joi.boolean()
         .default(true),
 })

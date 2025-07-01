@@ -33,7 +33,7 @@ export const findByCategoria = async (idCategoria, options = {}) => {
     
     console.log(profesores);
     return {
-        data: profesores,
+        profesores: profesores,
         pagination: {
             page,
             limit,
@@ -70,7 +70,7 @@ export const findByProfesor = async (idProfesor, options = {}) => {
     ]);
     
     return {
-        data: categorias,
+        categorias: categorias,
         pagination: {
             page,
             limit,
@@ -115,9 +115,8 @@ export const findAll = async (options = {}) => {
             .limit(limit),
         ProfesorCategoria.countDocuments(query)
     ]);
-    
     return {
-        data: profesoresCategorias,
+        profesoresCategorias: profesoresCategorias,
         pagination: {
             page,
             limit,

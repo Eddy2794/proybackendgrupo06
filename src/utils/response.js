@@ -45,6 +45,11 @@ export const validation = (message, validationErrors = []) => {
   };
 };
 
+// Alias para compatibilidad
+export const successResponse = success;
+export const errorResponse = error;
+export const validationResponse = validation;
+
 /**
  * Respuesta paginada
  * @param {string} message - Mensaje descriptivo

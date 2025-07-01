@@ -35,3 +35,5 @@ export const logger = createLogger({
   ],
   exitOnError: false
 });
+
+export default logger;

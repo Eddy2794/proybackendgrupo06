@@ -19,9 +19,8 @@ const profesorCategoriaSchema = new mongoose.Schema({
     },
     observaciones: {
         type: String,
-        required: [true, 'La observación es requerida'],
         trim: true,
-        minlength: 2,
+        minlength: 0,
         maxlength: 255
     },
     activo: {

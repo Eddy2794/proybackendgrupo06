@@ -22,9 +22,9 @@ export const createProfesorCategoriaSchema = Joi.object({
             'date.max': 'La fecha de asignación no puede ser futura'
         }),
     observaciones: Joi.string()
-        .min(2)
+        .allow('')
+        .min(0)
         .max(255)
-        .required()
         .messages({
             'string.min': 'Las observaciones deben tener al menos 2 caracteres',
             'string.max': 'Las observaciones no pueden exceder 255 caracteres',
@@ -50,7 +50,8 @@ export const updateProfesorCategoriaSchema = Joi.object({
             'date.max': 'La fecha de asignación no puede ser futura'
         }),
     observaciones: Joi.string()
-        .min(2)
+        .allow('')
+        .min(0)
         .max(255)
         .messages({
             'string.min': 'Las observaciones deben tener al menos 2 caracteres',
