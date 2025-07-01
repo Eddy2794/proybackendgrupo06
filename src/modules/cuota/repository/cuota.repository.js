@@ -30,7 +30,19 @@ export const deleteById = async (id) => {
 
 // Buscar todas las cuotas por estado (PENDIENTE, PAGA, VENCIDA)
 export const findByEstado = async (estado) => {
-  return await Cuota.find({ estado });
+  const populateConfig = [
+    {
+      path: 'alumno_categoria_id',
+      populate: [
+        { path: 'alumno', model: 'Alumno', populate: { path: 'persona', model: 'Persona' } },
+        { path: 'categoria_datos' }
+      ]
+    }
+  ];
+  if (!estado) {
+    return await Cuota.find().populate(populateConfig);
+  }
+  return await Cuota.find({ estado }).populate(populateConfig);
 }
 
 // Buscar todas las cuotas de un periodo específico (año y mes)
