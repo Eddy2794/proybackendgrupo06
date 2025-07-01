@@ -1,5 +1,8 @@
 import mongoose from 'mongoose';
 import simpleSoftDelete from '../../../utils/simpleSoftDelete.js';
+import '../../alumno/model/alumno.model.js';
+import '../../categoria/model/categoria.model.js';
+import '../../persona/model/persona.model.js';
 
 export const ALUMNO_CATEGORIA_ESTADOS = ['ACTIVO', 'INACTIVO'];
 
