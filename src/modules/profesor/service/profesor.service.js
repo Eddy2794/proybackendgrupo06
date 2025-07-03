@@ -1,5 +1,6 @@
 import * as profesorRepository from '../repository/profesor-repository.js';
 import * as personaService from '../../persona/service/persona.service.js';
+import * as profesorCategoriaService from '../../profesor-categoria/service/profesor-categoria.service.js';
 
 
 export const getProfesores = async () => {
@@ -48,6 +49,8 @@ export const updateProfesor = async (id, profesorData) => {
 };
 
 export const deleteProfesor = async (id) => {
+    // Desactivar relaciones en profesor-categoria usando el service
+    await profesorCategoriaService.desactivarPorProfesor(id);
     const profesor = await profesorRepository.deleteById(id);
     if (!profesor) {
         throw new Error('Error al eliminar el profesor');
