@@ -187,3 +187,10 @@ export const findByProfesorAndCategoria = async (idProfesor, idCategoria, option
         })
         .populate('categoria');
 };
+
+export const deactivateByProfesor = async (idProfesor) => {
+    return await ProfesorCategoria.updateMany(
+        { profesor: idProfesor, activo: true },
+        { $set: { activo: false } }
+    );
+};
