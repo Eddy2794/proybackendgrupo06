@@ -84,11 +84,12 @@ export const findAll = async (options = {}) => {
     const { page = 1, limit = 10, sort = '-createdAt', search, activo } = options;
     
     const skip = (page - 1) * limit;
-    const query = {};
+    // Por defecto, solo relaciones activas
+    const query = { activo: true };
     
-    // Filtro por estado activo
-    if (activo !== undefined) {
-        query.activo = activo;
+    // Si explícitamente se pasa activo: false, buscar inactivas
+    if (activo === false) {
+        query.activo = false;
     }
     
     // Filtro de búsqueda
