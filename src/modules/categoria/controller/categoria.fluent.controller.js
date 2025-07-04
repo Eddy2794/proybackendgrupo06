@@ -8,13 +8,13 @@ export class CategoriaController {
   
   async getAllCategorias(req, res, next) {
     try {
-      const { page = 1, limit = 10, search, activa, nivel, edad_min, edad_max } = req.query;
+      const { page = 1, limit = 10, search, estado, nivel, edadMinima, edadMaxima } = req.query;
       const filters = {};
-      if (search) filters.search = search;
-      if (activa !== undefined) filters.activa = activa === 'true';
+      if (search) filters.nombre = { $regex: search, $options: 'i' };
+      if (estado) filters.estado = estado;
       if (nivel) filters.nivel = nivel;
-      if (edad_min !== undefined) filters.edad_min = parseInt(edad_min);
-      if (edad_max !== undefined) filters.edad_max = parseInt(edad_max);
+      if (edadMinima !== undefined) filters.edadMinima = { $gte: parseInt(edadMinima) };
+      if (edadMaxima !== undefined) filters.edadMaxima = { $lte: parseInt(edadMaxima) };
       
       const options = { page: parseInt(page), limit: parseInt(limit) };
       const result = await categoriaService.getAllCategorias(filters, options);
@@ -148,13 +148,13 @@ export class CategoriaController {
 
   async getCategoriasByRangoEdad(req, res, next) {
     try {
-      const { edad_min, edad_max } = req.query;
-      if (!edad_min || !edad_max) {
-        return res.error('Se requieren edad_min y edad_max', 400);
+      const { edadMinima, edadMaxima } = req.query;
+      if (!edadMinima || !edadMaxima) {
+        return res.error('Se requieren edadMinima y edadMaxima', 400);
       }
       const categorias = await categoriaService.getCategoriasByRangoEdad(
-        parseInt(edad_min), 
-        parseInt(edad_max)
+        parseInt(edadMinima), 
+        parseInt(edadMaxima)
       );
       return res.success('Categorías por rango de edad obtenidas exitosamente', categorias);
     } catch (error) {

@@ -13,7 +13,7 @@ export const getTorneosCategorias = async (queryOptions = {}) => {
 };
 
 export const getCategoriasByTorneo = async (idTorneo, queryOptions = {}) => {
-    const { page = 1, limit = 10, sort = '-createdAt', activa = true } = queryOptions;
+    const { page = 1, limit = 10, sort = '-createdAt', estado = 'ACTIVO' } = queryOptions;
     
     const categorias = await torneoRepository.findByTorneo(idTorneo, { 
         page, 
@@ -30,7 +30,7 @@ export const getCategoriasByTorneo = async (idTorneo, queryOptions = {}) => {
 };
 
 export const getTorneosByCategoria = async (idCategoria, queryOptions = {}) => {
-    const { page = 1, limit = 10, sort = '-createdAt', activa = true } = queryOptions;
+    const { page = 1, limit = 10, sort = '-createdAt', estado = 'ACTIVO' } = queryOptions;
     
     const torneos = await torneoRepository.findByCategoria(idCategoria, { 
         page, 
