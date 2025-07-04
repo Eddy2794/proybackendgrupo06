@@ -17,7 +17,6 @@ import torneoCategoriaRoutes from '../modules/torneo-categoria/routes/torneo-cat
 
 // Importar rutas de MercadoPago
 import pagoRoutes from '../modules/pago/route/pago.routes.js';
-import categoriaEscuelaRoutes from '../modules/categoria-escuela/route/categoriaEscuela.routes.js';
 
 // Importar rutas de desarrollo
 import authDevRoutes from '../modules/auth/route/auth.dev.routes.js';
@@ -44,7 +43,9 @@ router.use('/torneos-categorias', torneoCategoriaRoutes);
 
 // Rutas de MercadoPago y pagos
 router.use('/pagos', pagoRoutes);
-router.use('/categoria-escuela', categoriaEscuelaRoutes);
+router.use('/categoria', categoriaRoutes);
+// Ruta unificada de categorías
+// Nota: /categoria-escuela eliminado en Fase 2 de migración
 router.use('/alumnos', alumnoRoutes);
 router.use('/alumno-categorias', alumnoCategoriaRoutes);
 router.use('/cuotas', cuotaRoutes);

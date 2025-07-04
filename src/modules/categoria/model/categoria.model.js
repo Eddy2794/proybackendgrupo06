@@ -3,10 +3,12 @@ import simpleSoftDelete from '../../../utils/simpleSoftDelete.js';
 
 // Constantes para el modelo
 const NIVELES = ['PRINCIPIANTE', 'INTERMEDIO', 'AVANZADO', 'COMPETITIVO'];
-const ESTADOS_CATEGORIA = ['ACTIVA', 'INACTIVA'];
+const TIPOS_CATEGORIA = ['INFANTIL', 'JUVENIL', 'COMPETITIVO', 'RECREATIVO'];
+const ESTADOS_CATEGORIA = ['ACTIVA', 'INACTIVA', 'SUSPENDIDA'];
 const DIAS_SEMANA = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'];
 
 const categoriaSchema = new mongoose.Schema({
+  // Campos básicos
   nombre: {
     type: String,
     required: [true, 'El nombre de la categoría es requerido'],
@@ -14,33 +16,121 @@ const categoriaSchema = new mongoose.Schema({
     trim: true,
     index: true
   },
-  edad_min: {
-    type: Number,
-    required: [true, 'La edad mínima es requerida'],
-    min: [3, 'La edad mínima debe ser al menos 3 años'],
-    max: [100, 'La edad mínima no puede ser mayor a 100 años']
-  },
-  edad_max: {
-    type: Number,
-    required: [true, 'La edad máxima es requerida'],
-    min: [3, 'La edad máxima debe ser al menos 3 años'],
-    max: [100, 'La edad máxima no puede ser mayor a 100 años']
-  },
   descripcion: {
     type: String,
     trim: true,
     maxlength: [500, 'La descripción no puede exceder 500 caracteres']
   },
-  activa: {
-    type: Boolean,
-    default: true,
+  
+  // Campos de edad estandarizados para MercadoPago
+  edadMinima: {
+    type: Number,
+    required: [true, 'La edad mínima es requerida'],
+    min: [3, 'La edad mínima debe ser al menos 3 años'],
+    max: [100, 'La edad mínima no puede ser mayor a 100 años']
+  },
+  edadMaxima: {
+    type: Number,
+    required: [true, 'La edad máxima es requerida'],
+    min: [3, 'La edad máxima debe ser al menos 3 años'],
+    max: [100, 'La edad máxima no puede ser mayor a 100 años']
+  },
+  
+  // Campos originales para compatibilidad (virtuales)
+  edad_min: {
+    type: Number,
+    get: function() { return this.edadMinima; },
+    set: function(value) { this.edadMinima = value; }
+  },
+  edad_max: {
+    type: Number,
+    get: function() { return this.edadMaxima; },
+    set: function(value) { this.edadMaxima = value; }
+  },
+  
+  // Tipo de categoría para MercadoPago
+  tipo: {
+    type: String,
+    enum: {
+      values: TIPOS_CATEGORIA,
+      message: 'Tipo de categoría no válido'
+    },
+    required: [true, 'El tipo de categoría es requerido']
+  },
+  
+  // Estado robusto para MercadoPago
+  estado: {
+    type: String,
+    enum: {
+      values: ESTADOS_CATEGORIA,
+      message: 'Estado no válido'
+    },
+    default: 'ACTIVA',
     index: true
   },
+  
+  // Campo original activa para compatibilidad (virtual)
+  activa: {
+    type: Boolean,
+    get: function() { return this.estado === 'ACTIVA'; },
+    set: function(value) { this.estado = value ? 'ACTIVA' : 'INACTIVA'; }
+  },
+  
+  // Estructura de precio para MercadoPago
+  precio: {
+    cuotaMensual: {
+      type: Number,
+      required: [true, 'La cuota mensual es requerida'],
+      min: [0, 'La cuota mensual no puede ser negativa']
+    },
+    descuentos: {
+      hermanos: {
+        type: Number,
+        default: 0,
+        min: [0, 'El descuento no puede ser negativo'],
+        max: [100, 'El descuento no puede ser mayor al 100%']
+      },
+      pagoAnual: {
+        type: Number,
+        default: 0,
+        min: [0, 'El descuento no puede ser negativo'],
+        max: [100, 'El descuento no puede ser mayor al 100%']
+      },
+      primeraVez: {
+        type: Number,
+        default: 0,
+        min: [0, 'El descuento no puede ser negativo'],
+        max: [100, 'El descuento no puede ser mayor al 100%']
+      }
+    }
+  },
+  
+  // Campo original cuota_mensual para compatibilidad (virtual)
   cuota_mensual: {
     type: Number,
-    required: [true, 'La cuota mensual es requerida'],
-    min: [0, 'La cuota mensual no puede ser negativa']
+    get: function() { return this.precio?.cuotaMensual || 0; },
+    set: function(value) { 
+      if (!this.precio) this.precio = {};
+      this.precio.cuotaMensual = value;
+    }
   },
+  
+  // Configuración de cupos
+  cupoMaximo: {
+    type: Number,
+    required: [true, 'El máximo de alumnos es requerido'],
+    min: [1, 'Debe permitir al menos 1 alumno'],
+    max: [100, 'No puede exceder 100 alumnos']
+  },
+  
+  // Campo original max_alumnos para compatibilidad (virtual)
+  max_alumnos: {
+    type: Number,
+    get: function() { return this.cupoMaximo; },
+    set: function(value) { this.cupoMaximo = value; }
+  },
+  
+  // Horarios
   horarios: [{
     dia: {
       type: String,
@@ -61,34 +151,58 @@ const categoriaSchema = new mongoose.Schema({
       match: [/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato de hora inválido (HH:MM)']
     }
   }],
-  max_alumnos: {
-    type: Number,
-    required: [true, 'El máximo de alumnos es requerido'],
-    min: [1, 'Debe permitir al menos 1 alumno'],
-    max: [100, 'No puede exceder 100 alumnos']
+  
+  // Configuración específica para MercadoPago
+  configuracionPago: {
+    permitePagoMensual: {
+      type: Boolean,
+      default: true
+    },
+    permitePagoAnual: {
+      type: Boolean,
+      default: true
+    },
+    requiereInscripcion: {
+      type: Boolean,
+      default: true
+    }
   },
+  
+  // Campo nivel para compatibilidad
   nivel: {
     type: String,
     enum: {
       values: NIVELES,
       message: 'Nivel no válido'
     },
-    required: [true, 'El nivel es requerido'],
     default: 'PRINCIPIANTE'
+  },
+  
+  // Metadatos de migración
+  migracion: {
+    fechaMigracion: Date,
+    categoriaOriginalId: mongoose.Schema.Types.ObjectId,
+    version: String
   }
 }, {
   timestamps: true
 });
 
 // Índices adicionales para búsquedas eficientes
+categoriaSchema.index({ edadMinima: 1, edadMaxima: 1 });
+categoriaSchema.index({ estado: 1 });
+categoriaSchema.index({ tipo: 1 });
+categoriaSchema.index({ 'precio.cuotaMensual': 1 });
+categoriaSchema.index({ nivel: 1 });
+
+// Índices de compatibilidad
 categoriaSchema.index({ edad_min: 1, edad_max: 1 });
 categoriaSchema.index({ activa: 1 });
-categoriaSchema.index({ nivel: 1 });
 categoriaSchema.index({ cuota_mensual: 1 });
 
 // Virtual para rango de edad
 categoriaSchema.virtual('rangoEdad').get(function() {
-  return `${this.edad_min} - ${this.edad_max} años`;
+  return `${this.edadMinima} - ${this.edadMaxima} años`;
 });
 
 // Virtual para contar alumnos actuales (se implementará cuando se tenga el módulo alumno)
@@ -99,8 +213,62 @@ categoriaSchema.virtual('alumnosActuales').get(function() {
 
 // Virtual para verificar si tiene cupos disponibles
 categoriaSchema.virtual('tieneCupos').get(function() {
-  return this.alumnosActuales < this.max_alumnos;
+  return this.alumnosActuales < this.cupoMaximo;
 });
+
+// Métodos de instancia para MercadoPago
+categoriaSchema.methods.calcularPrecioConDescuento = function(tipoDescuento = null, meses = 1) {
+  const precioBase = this.precio.cuotaMensual * meses;
+  let descuento = 0;
+  
+  if (tipoDescuento && this.precio.descuentos[tipoDescuento]) {
+    descuento = this.precio.descuentos[tipoDescuento];
+  }
+  
+  const montoDescuento = (precioBase * descuento) / 100;
+  return {
+    precioBase,
+    descuento,
+    montoDescuento,
+    precioFinal: precioBase - montoDescuento
+  };
+};
+
+categoriaSchema.methods.esEdadValida = function(edad) {
+  return edad >= this.edadMinima && edad <= this.edadMaxima;
+};
+
+categoriaSchema.methods.getInfoMercadoPago = function() {
+  return {
+    id: this._id,
+    nombre: this.nombre,
+    tipo: this.tipo,
+    precio: this.precio,
+    configuracion: this.configuracionPago
+  };
+};
+
+// Métodos estáticos para búsquedas
+categoriaSchema.statics.buscarPorTipo = function(tipo) {
+  return this.find({ tipo, estado: 'ACTIVA', deletedAt: null });
+};
+
+categoriaSchema.statics.buscarPorRangoPrecio = function(minimo, maximo) {
+  return this.find({
+    'precio.cuotaMensual': { $gte: minimo, $lte: maximo },
+    estado: 'ACTIVA',
+    deletedAt: null
+  });
+};
+
+categoriaSchema.statics.buscarPorEdad = function(edad) {
+  return this.find({
+    edadMinima: { $lte: edad },
+    edadMaxima: { $gte: edad },
+    estado: 'ACTIVA',
+    deletedAt: null
+  });
+};
 
 // Incluir virtuals en JSON
 categoriaSchema.set('toJSON', { virtuals: true });
@@ -108,15 +276,22 @@ categoriaSchema.set('toObject', { virtuals: true });
 
 // Middleware pre-save para validaciones adicionales
 categoriaSchema.pre('save', function(next) {
-  // Validar que edad_min sea menor que edad_max
-  if (this.edad_min >= this.edad_max) {
+  // Validar que edadMinima sea menor que edadMaxima
+  if (this.edadMinima >= this.edadMaxima) {
     return next(new Error('La edad mínima debe ser menor que la edad máxima'));
   }
   
   // Capitalizar correctamente el nombre
-  this.nombre = this.nombre.split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
+  if (this.nombre) {
+    this.nombre = this.nombre.split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+  
+  // Validar estructura de precio
+  if (this.precio && !this.precio.cuotaMensual) {
+    return next(new Error('La cuota mensual es requerida en la estructura de precio'));
+  }
   
   // Validar horarios
   if (this.horarios && this.horarios.length > 0) {
@@ -127,10 +302,28 @@ categoriaSchema.pre('save', function(next) {
       const minutosInicio = inicio[0] * 60 + inicio[1];
       const minutosFin = fin[0] * 60 + fin[1];
       
+      
       if (minutosInicio >= minutosFin) {
         return next(new Error('La hora de inicio debe ser menor que la hora de fin'));
       }
     }
+  }
+  
+  // Sincronizar campos de compatibilidad
+  if (this.isModified('edadMinima')) {
+    this.edad_min = this.edadMinima;
+  }
+  if (this.isModified('edadMaxima')) {
+    this.edad_max = this.edadMaxima;
+  }
+  if (this.isModified('estado')) {
+    this.set('activa', this.estado === 'ACTIVA', { strict: false });
+  }
+  if (this.isModified('cupoMaximo')) {
+    this.max_alumnos = this.cupoMaximo;
+  }
+  if (this.isModified('precio.cuotaMensual')) {
+    this.cuota_mensual = this.precio.cuotaMensual;
   }
   
   next();

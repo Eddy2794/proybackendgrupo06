@@ -327,7 +327,7 @@ class PagoController {
         };
       }
       if (estado) filtros.estado = estado;
-      if (categoriaId) filtros.categoriaEscuela = categoriaId;
+      if (categoriaId) filtros.categoria = categoriaId;
 
       const estadisticas = await mercadoPagoService.obtenerEstadisticas(filtros);
 
