@@ -25,9 +25,10 @@ const torneoCategoriaSchema = new mongoose.Schema({
         maxlength: [500, 'Las observaciones no pueden exceder 500 caracteres']
     },
 
-    activa: {
-        type: Boolean,
-        default: true
+    estado: {
+        type: String,
+        enum: ['ACTIVO', 'INACTIVO'],
+        default: 'ACTIVO'
     }
 }, {
     timestamps: true

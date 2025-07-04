@@ -20,7 +20,7 @@ export class TorneoCategoriaController {
                 limit: parseInt(limit),
                 sort,
                 search,
-                activa: activa !== undefined ? activa === 'true' : undefined
+                estado: activa !== undefined ? (activa === 'true' ? 'ACTIVO' : 'INACTIVO') : undefined
             };
 
             const torneosCategorias = await torneoCategoriaService.getTorneosCategorias(queryOptions);
@@ -33,13 +33,13 @@ export class TorneoCategoriaController {
     async getCategoriasByTorneo(req, res, next) {
         try {
             const { idTorneo } = req.params;
-            const { page = 1, limit = 10, sort = '-createdAt', activa = true } = req.query;
+            const { page = 1, limit = 10, sort = '-createdAt', estado = 'ACTIVO' } = req.query;
             
             const queryOptions = {
                 page: parseInt(page),
                 limit: parseInt(limit),
                 sort,
-                activa: activa === 'true'
+                estado: estado
             };
 
             const categorias = await torneoCategoriaService.getCategoriasByTorneo(idTorneo, queryOptions);
@@ -52,13 +52,13 @@ export class TorneoCategoriaController {
     async getTorneosByCategoria(req, res, next) {
         try {
             const { idCategoria } = req.params;
-            const { page = 1, limit = 10, sort = '-createdAt', activa = true } = req.query;
+            const { page = 1, limit = 10, sort = '-createdAt', estado = 'ACTIVO' } = req.query;
             
             const queryOptions = {
                 page: parseInt(page),
                 limit: parseInt(limit),
                 sort,
-                activa: activa === 'true'
+                estado: estado
             };
 
             const torneos = await torneoCategoriaService.getTorneosByCategoria(idCategoria, queryOptions);

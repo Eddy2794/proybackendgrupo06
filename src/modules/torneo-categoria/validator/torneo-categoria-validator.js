@@ -27,7 +27,7 @@ export const createTorneoCategoriaSchema = Joi.object({
         .messages({
             'string.max': 'Las observaciones no pueden exceder 500 caracteres'
         }),
-    activa: Joi.boolean().default(true),
+    estado: Joi.string().valid('ACTIVO', 'INACTIVO').default('ACTIVO'),
 });
 
 export const updateTorneoCategoriaSchema = Joi.object({
@@ -94,6 +94,6 @@ export const torneoCategoriaQuerySchema = Joi.object({
     activa: Joi.boolean()
         .default(true)
         .messages({
-            'boolean.base': 'El filtro activa debe ser true o false'
+            'any.only': 'El estado debe ser ACTIVO o INACTIVO'
         })
 });
