@@ -601,7 +601,7 @@ export const loginDev = async ({ username, password }) => {
     exitoso: true,
     metodo: 'dev-credentials',
     userAgent: 'Development Login',
-    ip: '127.0.0.1'
+    ip: req?.ip || req?.connection?.remoteAddress || 'localhost'
   });
   
   // Mantener solo los últimos 10 registros

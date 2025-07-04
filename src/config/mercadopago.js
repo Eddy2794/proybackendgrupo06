@@ -1,5 +1,6 @@
 import { MercadoPagoConfig } from 'mercadopago';
 import dotenv from 'dotenv';
+import config from './index.js';
 
 dotenv.config();
 
@@ -28,22 +29,9 @@ class MercadoPagoConfiguration {
     const missingVars = requiredVars.filter(varName => !process.env[varName]);
 
     if (missingVars.length > 0) {
-      throw new Error(
-        `Las siguientes variables de entorno de MercadoPago son requeridas: ${missingVars.join(', ')}`
-      );
+      console.error(`❌ Missing MercadoPago environment variables: ${missingVars.join(', ')}`);
+      throw new Error(`Missing MercadoPago environment variables: ${missingVars.join(', ')}`);
     }
-
-    // Validar formato del access token
-    // if (!process.env.MP_ACCESS_TOKEN.startsWith('TEST-') && 
-    //     !process.env.MP_ACCESS_TOKEN.startsWith('APP_USR-')) {
-    //   throw new Error('El formato del MP_ACCESS_TOKEN no es válido');
-    // }
-
-    // // Validar formato de la public key
-    // if (!process.env.MP_PUBLIC_KEY.startsWith('TEST-') && 
-    //     !process.env.MP_PUBLIC_KEY.startsWith('APP_USR-')) {
-    //   throw new Error('El formato del MP_PUBLIC_KEY no es válido');
-    // }
   }
 
   /**
@@ -79,12 +67,13 @@ class MercadoPagoConfiguration {
    * Obtiene las credenciales públicas para el frontend
    */
   getPublicCredentials() {
+    const baseUrl = this.getFrontendBaseUrl();
     return {
       publicKey: process.env.MP_PUBLIC_KEY,
       urls: {
-        success: process.env.MP_SUCCESS_URL || 'http://localhost:4200/payments/success',
-        failure: process.env.MP_FAILURE_URL || 'http://localhost:4200/payments/failure',
-        pending: process.env.MP_PENDING_URL || 'http://localhost:4200/payments/pending'
+        success: process.env.MP_SUCCESS_URL || `${baseUrl}/payments/success`,
+        failure: process.env.MP_FAILURE_URL || `${baseUrl}/payments/failure`,
+        pending: process.env.MP_PENDING_URL || `${baseUrl}/payments/pending`
       }
     };
   }
@@ -93,11 +82,12 @@ class MercadoPagoConfiguration {
    * Obtiene las URLs de configuración
    */
   getUrls() {
+    const baseUrl = this.getFrontendBaseUrl();
     return {
       webhook: process.env.MP_WEBHOOK_URL,
-      success: process.env.MP_SUCCESS_URL || 'http://localhost:4200/payments/success',
-      failure: process.env.MP_FAILURE_URL || 'http://localhost:4200/payments/failure',
-      pending: process.env.MP_PENDING_URL || 'http://localhost:4200/payments/pending'
+      success: process.env.MP_SUCCESS_URL || `${baseUrl}/payments/success`,
+      failure: process.env.MP_FAILURE_URL || `${baseUrl}/payments/failure`,
+      pending: process.env.MP_PENDING_URL || `${baseUrl}/payments/pending`
     };
   }
 
@@ -189,6 +179,13 @@ class MercadoPagoConfiguration {
       webhookConfigured: !!process.env.MP_WEBHOOK_URL,
       timestamp: new Date().toISOString()
     };
+  }
+
+  /**
+   * Obtiene la URL base del frontend según el entorno
+   */
+  getFrontendBaseUrl() {
+    return config.frontendUrl;
   }
 }
 

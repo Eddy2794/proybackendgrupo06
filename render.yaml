@@ -8,13 +8,15 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: FRONTEND_URL
+        value: https://proyfrontendgrupo06.onrender.com
+      - key: GOOGLE_CALLBACK_URL
+        value: https://trabajo-final-psw.onrender.com/api/auth/google/callback
     # Variables de entorno que deben ser configuradas en Render Dashboard:
     # DB_URI - URL de MongoDB Atlas
     # JWT_SECRET - Clave secreta para JWT
     # GOOGLE_CLIENT_ID - ID del cliente de Google OAuth
     # GOOGLE_CLIENT_SECRET - Secreto del cliente de Google OAuth
-    # GOOGLE_CALLBACK_URL - URL de callback para Google OAuth
-    # FRONTEND_URL - URL del frontend desplegado
-    # CORS_ORIGIN - Origen permitido para CORS
+    # CORS_ORIGIN - Origen permitido para CORS (usar la URL del frontend)
     # MP_ACCESS_TOKEN - Token de acceso de MercadoPago
     # MP_NOTIFICATION_URL - URL para notificaciones de MercadoPago

@@ -17,6 +17,7 @@ const applyValidation = (schemaName, location = 'body') => {
 //Rutas de CRUD
 router.post('/', authMiddleware, ...applyValidation('createAlumnoCategoriaSchema'), alumnoCategoriaController.create);
 router.get('/', authMiddleware, ...applyValidation('alumnoCategoriaQuerySchema', 'query'), alumnoCategoriaController.getAll);
+router.get('/stats', authMiddleware, alumnoCategoriaController.getStats);
 router.get('/:id', authMiddleware, validateObjectId('id'), alumnoCategoriaController.getById);
 router.put('/:id', authMiddleware, validateObjectId('id'), ...applyValidation('updateAlumnoCategoriaSchema'), alumnoCategoriaController.upate);
 router.delete('/eliminar/:id', authMiddleware, validateObjectId('id'), alumnoCategoriaController.delete);
@@ -24,7 +25,6 @@ router.delete('/:id', authMiddleware, validateObjectId('id'), alumnoCategoriaCon
 router.patch('/restaurar/:id', authMiddleware, validateObjectId('id'), alumnoCategoriaController.restore);
 router.get('/alumno/:alumnoId', authMiddleware, validateObjectId('alumnoId'), alumnoCategoriaController.getByAlumno);
 router.get('/categoria/:categoriaId', authMiddleware, validateObjectId('categoriaId'), alumnoCategoriaController.getByCategoria);
-router.get('/stats', authMiddleware, alumnoCategoriaController.getStats);
 
 
 //Documentación para Swagger

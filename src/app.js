@@ -28,13 +28,9 @@ const app = express();
 // Configurar proxy para obtener IPs reales
 // app.set('trust proxy', true); // Solo habilitar si usas proxy inverso (Nginx, Heroku, etc.)
 
-// Configuración de CORS
+// Configuración de CORS simplificada para debugging
 const corsOptions = {
-  origin: [
-    'http://localhost:4200', 
-    'http://127.0.0.1:4200',
-    'https://proyfrontendgrupo06-1.onrender.com'
-  ],
+  origin: true, // Permitir todos los orígenes temporalmente
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: [
@@ -54,7 +50,8 @@ const corsOptions = {
     'x-frame-options',
     'x-xss-protection',
     'referrer-policy',
-    'x-client-version'  ],
+    'x-client-version'
+  ],
   optionsSuccessStatus: 200
 };
 
