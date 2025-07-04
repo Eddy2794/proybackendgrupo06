@@ -8,7 +8,7 @@ export const createCategoria = async (categoriaData) => {
   }
 
   // Validar que la edad mínima sea menor que la máxima
-  if (categoriaData.edad_min >= categoriaData.edad_max) {
+  if (categoriaData.edadMinima >= categoriaData.edadMaxima) {
     throw new Error('La edad mínima debe ser menor que la edad máxima');
   }
 
@@ -66,8 +66,8 @@ export const updateCategoria = async (id, updateData) => {
   }
 
   // Validar edades si se están actualizando
-  const edadMin = updateData.edad_min !== undefined ? updateData.edad_min : existingCategoria.edad_min;
-  const edadMax = updateData.edad_max !== undefined ? updateData.edad_max : existingCategoria.edad_max;
+  const edadMin = updateData.edadMinima !== undefined ? updateData.edadMinima : existingCategoria.edadMinima;
+  const edadMax = updateData.edadMaxima !== undefined ? updateData.edadMaxima : existingCategoria.edadMaxima;
   
   if (edadMin >= edadMax) {
     throw new Error('La edad mínima debe ser menor que la edad máxima');
@@ -154,7 +154,7 @@ export const activateCategoria = async (id) => {
     throw new Error('Categoría no encontrada');
   }
 
-  return await categoriaRepo.updateById(id, { activa: true });
+  return await categoriaRepo.updateById(id, { estado: 'ACTIVA' });
 };
 
 export const deactivateCategoria = async (id) => {
@@ -166,12 +166,12 @@ export const deactivateCategoria = async (id) => {
   // TODO: Verificar que no tenga alumnos activos antes de desactivar
   // Esta validación se implementará cuando se tenga el módulo de alumnos
 
-  return await categoriaRepo.updateById(id, { activa: false });
+  return await categoriaRepo.updateById(id, { estado: 'INACTIVA' });
 };
 
 export const getCategoriaStats = async () => {
   const totalCategorias = await categoriaRepo.findAll({}, { page: 1, limit: 1 });
-  const categoriasActivas = await categoriaRepo.findAll({ activa: true }, { page: 1, limit: 1 });
+  const categoriasActivas = await categoriaRepo.findAll({ estado: 'ACTIVA' }, { page: 1, limit: 1 });
   
   return {
     total: totalCategorias.pagination.total,
@@ -191,7 +191,7 @@ export const createCategoriaWithSession = async (categoriaData, session) => {
   }
 
   // Validar que la edad mínima sea menor que la máxima
-  if (categoriaData.edad_min >= categoriaData.edad_max) {
+  if (categoriaData.edadMinima >= categoriaData.edadMaxima) {
     throw new Error('La edad mínima debe ser menor que la edad máxima');
   }
 

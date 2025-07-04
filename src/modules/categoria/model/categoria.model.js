@@ -36,17 +36,7 @@ const categoriaSchema = new mongoose.Schema({
     max: [100, 'La edad máxima no puede ser mayor a 100 años']
   },
   
-  // Campos originales para compatibilidad (virtuales)
-  edad_min: {
-    type: Number,
-    get: function() { return this.edadMinima; },
-    set: function(value) { this.edadMinima = value; }
-  },
-  edad_max: {
-    type: Number,
-    get: function() { return this.edadMaxima; },
-    set: function(value) { this.edadMaxima = value; }
-  },
+  // Campos originales removidos - ahora son virtuales verdaderos
   
   // Tipo de categoría para MercadoPago
   tipo: {
@@ -69,12 +59,7 @@ const categoriaSchema = new mongoose.Schema({
     index: true
   },
   
-  // Campo original activa para compatibilidad (virtual)
-  activa: {
-    type: Boolean,
-    get: function() { return this.estado === 'ACTIVA'; },
-    set: function(value) { this.estado = value ? 'ACTIVA' : 'INACTIVA'; }
-  },
+  // Campo original activa removido - ahora es virtual verdadero
   
   // Estructura de precio para MercadoPago
   precio: {
@@ -105,15 +90,7 @@ const categoriaSchema = new mongoose.Schema({
     }
   },
   
-  // Campo original cuota_mensual para compatibilidad (virtual)
-  cuota_mensual: {
-    type: Number,
-    get: function() { return this.precio?.cuotaMensual || 0; },
-    set: function(value) { 
-      if (!this.precio) this.precio = {};
-      this.precio.cuotaMensual = value;
-    }
-  },
+  // Campo original cuota_mensual removido - ahora es virtual verdadero
   
   // Configuración de cupos
   cupoMaximo: {
@@ -123,12 +100,7 @@ const categoriaSchema = new mongoose.Schema({
     max: [100, 'No puede exceder 100 alumnos']
   },
   
-  // Campo original max_alumnos para compatibilidad (virtual)
-  max_alumnos: {
-    type: Number,
-    get: function() { return this.cupoMaximo; },
-    set: function(value) { this.cupoMaximo = value; }
-  },
+  // Campo original max_alumnos removido - ahora es virtual verdadero
   
   // Horarios
   horarios: [{
@@ -195,10 +167,7 @@ categoriaSchema.index({ tipo: 1 });
 categoriaSchema.index({ 'precio.cuotaMensual': 1 });
 categoriaSchema.index({ nivel: 1 });
 
-// Índices de compatibilidad
-categoriaSchema.index({ edad_min: 1, edad_max: 1 });
-categoriaSchema.index({ activa: 1 });
-categoriaSchema.index({ cuota_mensual: 1 });
+// Índices eliminados - ya no se necesitan campos de compatibilidad
 
 // Virtual para rango de edad
 categoriaSchema.virtual('rangoEdad').get(function() {
@@ -215,6 +184,8 @@ categoriaSchema.virtual('alumnosActuales').get(function() {
 categoriaSchema.virtual('tieneCupos').get(function() {
   return this.alumnosActuales < this.cupoMaximo;
 });
+
+// Campos virtuales de compatibilidad eliminados - usar solo nomenclatura nueva
 
 // Métodos de instancia para MercadoPago
 categoriaSchema.methods.calcularPrecioConDescuento = function(tipoDescuento = null, meses = 1) {
@@ -309,22 +280,7 @@ categoriaSchema.pre('save', function(next) {
     }
   }
   
-  // Sincronizar campos de compatibilidad
-  if (this.isModified('edadMinima')) {
-    this.edad_min = this.edadMinima;
-  }
-  if (this.isModified('edadMaxima')) {
-    this.edad_max = this.edadMaxima;
-  }
-  if (this.isModified('estado')) {
-    this.set('activa', this.estado === 'ACTIVA', { strict: false });
-  }
-  if (this.isModified('cupoMaximo')) {
-    this.max_alumnos = this.cupoMaximo;
-  }
-  if (this.isModified('precio.cuotaMensual')) {
-    this.cuota_mensual = this.precio.cuotaMensual;
-  }
+  // Campos de compatibilidad ahora son virtuales - no necesitan sincronización
   
   next();
 });
