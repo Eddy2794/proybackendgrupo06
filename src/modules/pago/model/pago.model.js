@@ -42,9 +42,9 @@ const pagoSchema = new mongoose.Schema({
     required: [true, 'La referencia al usuario es requerida']
   },
   
-  categoriaEscuela: {
+  categoria: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'CategoriaEscuela',
+    ref: 'Categoria',
     required: [true, 'La referencia a la categoría es requerida']
   },
   
@@ -360,7 +360,7 @@ pagoSchema.statics.buscarPorUsuario = function(usuarioId, opciones = {}) {
   }
   
   return this.find(filtros)
-    .populate('categoriaEscuela', 'nombre tipo precio')
+    .populate('categoria', 'nombre tipo precio')
     .populate('usuario', 'username persona')
     .sort({ 'auditoria.fechaCreacion': -1 });
 };
@@ -373,7 +373,7 @@ pagoSchema.statics.buscarPorPeriodo = function(anio, mes = null) {
   }
   
   return this.find(filtros)
-    .populate('categoriaEscuela', 'nombre tipo precio')
+    .populate('categoria', 'nombre tipo precio')
     .populate('usuario', 'username persona')
     .sort({ 'auditoria.fechaCreacion': -1 });
 };

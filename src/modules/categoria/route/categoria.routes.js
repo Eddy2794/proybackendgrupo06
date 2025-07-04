@@ -13,6 +13,7 @@ import {
 } from '../validator/categoria.validators.js';
 import { authMiddleware } from '../../../middlewares/authMiddleware.js';
 import { extractUserForAudit } from '../../../middlewares/auditMiddleware.js';
+// Middleware removido - ya no es necesario
 import { autoMapValidators, routeConfig } from '../../../utils/swagger/api-docs.js';
 import * as categoriaValidators from '../validator/categoria.validators.js';
 
@@ -129,7 +130,7 @@ const categoriaRouteConfigs = [
     description: 'Obtiene categorías filtradas por nivel',
     auth: true
   }),
-  routeConfig('GET', '/rango-edad/:edad_min/:edad_max', null, 'Categorías por rango de edad', {
+  routeConfig('GET', '/rango-edad', null, 'Categorías por rango de edad', {
     description: 'Obtiene categorías filtradas por rango de edad',
     auth: true
   }),

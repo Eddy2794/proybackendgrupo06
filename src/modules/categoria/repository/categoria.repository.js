@@ -19,9 +19,14 @@ export const findAll = async (filter = {}, options = {}) => {
   
   const query = { ...filter };
   
-  // Si hay filtro de activa, aplicarlo
-  if (filter.activa !== undefined) {
-    query.activa = filter.activa;
+  // Si hay filtro de estado, aplicarlo
+  if (filter.estado !== undefined) {
+    query.estado = filter.estado;
+  }
+  // Filtro por estado
+  if (filter.estado) {
+    query.estado = filter.estado;
+    delete filter.estado;
   }
   
   // Si hay filtro de nivel, aplicarlo
@@ -30,13 +35,22 @@ export const findAll = async (filter = {}, options = {}) => {
   }
   
   // Si hay filtros de edad, aplicarlos
-  if (filter.edad_min !== undefined || filter.edad_max !== undefined) {
-    if (filter.edad_min !== undefined) {
-      query.edad_max = { $gte: filter.edad_min };
+  if (filter.edadMinima !== undefined || filter.edadMaxima !== undefined) {
+    if (filter.edadMinima !== undefined) {
+      query.edadMaxima = filter.edadMinima;
     }
-    if (filter.edad_max !== undefined) {
-      query.edad_min = { $lte: filter.edad_max };
+    if (filter.edadMaxima !== undefined) {
+      query.edadMinima = filter.edadMaxima;
     }
+  }
+  // Filtros de edad
+  if (filter.edadMinima !== undefined) {
+    query.edadMinima = { $gte: filter.edadMinima };
+    delete filter.edadMinima;
+  }
+  if (filter.edadMaxima !== undefined) {
+    query.edadMaxima = { $lte: filter.edadMaxima };
+    delete filter.edadMaxima;
   }
   
   // Si hay búsqueda por texto, aplicarla
@@ -141,25 +155,25 @@ export const searchByName = async (searchTerm) => {
 };
 
 export const findByNivel = async (nivel) => {
-  return await Categoria.find({ nivel, activa: true });
+  return await Categoria.find({ nivel, estado: 'ACTIVA' });
 };
 
 export const findByRangoEdad = async (edadMin, edadMax) => {
   return await Categoria.find({
-    edad_min: { $lte: edadMax },
-    edad_max: { $gte: edadMin },
-    activa: true
+    edadMinima: { $lte: edadMax },
+    edadMaxima: { $gte: edadMin },
+    estado: 'ACTIVA'
   });
 };
 
 export const findActivas = async () => {
-  return await Categoria.find({ activa: true }).sort({ nombre: 1 });
+  return await Categoria.find({ estado: 'ACTIVA' }).sort({ nombre: 1 });
 };
 
 export const findByHorario = async (dia) => {
   return await Categoria.find({
     'horarios.dia': dia,
-    activa: true
+    estado: 'ACTIVA'
   });
 };
 

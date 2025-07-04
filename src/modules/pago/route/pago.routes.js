@@ -26,9 +26,9 @@ const router = express.Router();
  *         usuario:
  *           type: string
  *           description: ID del usuario que realizó el pago
- *         categoriaEscuela:
- *           type: string
- *           description: ID de la categoría de escuela
+ *         categoria:
+           type: string
+           description: ID de la categoría
  *         tipo:
  *           type: string
  *           enum: [PAGO_CUOTA, PAGO_INSCRIPCION, PAGO_ANUAL, REEMBOLSO, AJUSTE]

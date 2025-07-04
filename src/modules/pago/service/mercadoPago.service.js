@@ -1,7 +1,7 @@
 import { Preference, Payment, Order } from 'mercadopago';
 import mercadoPagoConfig from '../../../config/mercadopago.js';
 import Pago from '../model/pago.model.js';
-import CategoriaEscuela from '../../categoria-escuela/model/categoriaEscuela.model.js';
+import Categoria from '../../categoria/model/categoria.model.js';
 import logger from '../../../utils/logger.js';
 import crypto from 'crypto';
 import * as userService from '../../user/service/user.service.js';
@@ -23,7 +23,7 @@ class MercadoPagoService {
    */
   async crearPreferenciaCuota(usuarioId, categoriaId, periodoData, descuentoTipo = null) {
     // Validar y obtener datos
-    const categoria = await CategoriaEscuela.findById(categoriaId);
+    const categoria = await Categoria.findById(categoriaId);
     if (!categoria) {
       const err = new Error('Categoría no encontrada');
       err.statusCode = 404;
@@ -51,7 +51,7 @@ class MercadoPagoService {
     // Crear registro de pago en la base de datos
     const nuevoPago = new Pago({
       usuario: usuarioId,
-      categoriaEscuela: categoriaId,
+      categoria: categoriaId,
       tipo: 'PAGO_CUOTA',
       periodo: periodoData,
       montos: {
@@ -143,7 +143,7 @@ class MercadoPagoService {
    */
   async crearPreferenciaAnual(usuarioId, categoriaId, anio, descuentoTipo = null) {
     // Validar y obtener datos
-    const categoria = await CategoriaEscuela.findById(categoriaId);
+    const categoria = await Categoria.findById(categoriaId);
     if (!categoria) {
       const err = new Error('Categoría no encontrada');
       err.statusCode = 404;
@@ -153,7 +153,7 @@ class MercadoPagoService {
     // Verificar si ya existe un pago anual para este año
     const pagoExistente = await Pago.findOne({
       usuario: usuarioId,
-      categoriaEscuela: categoriaId,
+      categoria: categoriaId,
       'periodo.anio': anio,
       tipo: 'PAGO_ANUAL',
       estado: { $in: ['PENDIENTE', 'APROBADO', 'EN_PROCESO'] },
@@ -189,7 +189,7 @@ class MercadoPagoService {
     // Crear registro de pago en la base de datos
     const nuevoPago = new Pago({
       usuario: usuarioId,
-      categoriaEscuela: categoriaId,
+      categoria: categoriaId,
       tipo: 'PAGO_ANUAL',
       periodo: { mes: 1, anio }, // Enero como mes de referencia
       montos: {
@@ -445,7 +445,7 @@ class MercadoPagoService {
   async verificarPagoExistente(usuarioId, categoriaId, periodo) {
     return await Pago.findOne({
       usuario: usuarioId,
-      categoriaEscuela: categoriaId,
+      categoria: categoriaId,
       'periodo.mes': periodo.mes,
       'periodo.anio': periodo.anio,
       estado: { $in: ['PENDIENTE', 'APROBADO', 'EN_PROCESO'] },
@@ -542,7 +542,7 @@ class MercadoPagoService {
   async obtenerPago(pagoId) {
     return await Pago.findById(pagoId)
       .populate('usuario', 'username persona')
-      .populate('categoriaEscuela', 'nombre tipo precio');
+      .populate('categoria', 'nombre tipo precio');
   }
 
   /**

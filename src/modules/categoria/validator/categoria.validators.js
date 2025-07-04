@@ -2,7 +2,8 @@ import Joi from 'joi';
 
 // Constantes para validaciones
 export const NIVELES = ['PRINCIPIANTE', 'INTERMEDIO', 'AVANZADO', 'COMPETITIVO'];
-export const ESTADOS_CATEGORIA = ['ACTIVA', 'INACTIVA'];
+export const TIPOS_CATEGORIA = ['INFANTIL', 'JUVENIL', 'COMPETITIVO', 'RECREATIVO', 'ENTRENAMIENTO'];
+export const ESTADOS_CATEGORIA = ['ACTIVA', 'INACTIVA', 'SUSPENDIDA'];
 export const DIAS_SEMANA = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'];
 
 // Esquema para validar horarios
@@ -43,7 +44,7 @@ export const createCategoriaSchema = Joi.object({
       'any.required': 'El nombre es requerido'
     }),
 
-  edad_min: Joi.number()
+  edadMinima: Joi.number()
     .integer()
     .min(3)
     .max(100)
@@ -54,11 +55,11 @@ export const createCategoriaSchema = Joi.object({
       'any.required': 'La edad mínima es requerida'
     }),
 
-  edad_max: Joi.number()
+  edadMaxima: Joi.number()
     .integer()
     .min(3)
     .max(100)
-    .greater(Joi.ref('edad_min'))
+    .greater(Joi.ref('edadMinima'))
     .required()
     .messages({
       'number.min': 'La edad máxima debe ser al menos 3 años',
@@ -75,27 +76,34 @@ export const createCategoriaSchema = Joi.object({
       'string.max': 'La descripción no puede exceder 500 caracteres'
     }),
 
-  activa: Joi.boolean()
-    .default(true)
+  estado: Joi.string()
+    .valid('ACTIVA', 'INACTIVA', 'SUSPENDIDA')
+    .default('ACTIVA')
     .optional(),
 
-  cuota_mensual: Joi.number()
-    .min(0)
-    .required()
-    .messages({
-      'number.min': 'La cuota mensual no puede ser negativa',
-      'any.required': 'La cuota mensual es requerida'
-    }),
+  precio: Joi.object({
+    cuotaMensual: Joi.number()
+      .min(0)
+      .required()
+      .messages({
+        'number.min': 'La cuota mensual no puede ser negativa',
+        'any.required': 'La cuota mensual es requerida'
+      }),
+    descuentos: Joi.object({
+      hermanos: Joi.number().min(0).max(100).default(0),
+      pagoAnual: Joi.number().min(0).max(100).default(0),
+      primeraVez: Joi.number().min(0).max(100).default(0)
+    }).optional()
+  }).required(),
 
   horarios: Joi.array()
     .items(horarioSchema)
-    .min(1)
     .optional()
     .messages({
       'array.min': 'Debe especificar al menos un horario'
     }),
 
-  max_alumnos: Joi.number()
+  cupoMaximo: Joi.number()
     .integer()
     .min(1)
     .max(100)
@@ -106,12 +114,26 @@ export const createCategoriaSchema = Joi.object({
       'any.required': 'El máximo de alumnos es requerido'
     }),
 
+  configuracionPago: Joi.object({
+    permitePagoMensual: Joi.boolean().default(true),
+    permitePagoAnual: Joi.boolean().default(true),
+    requiereInscripcion: Joi.boolean().default(true)
+  }).optional(),
+
   nivel: Joi.string()
     .valid(...NIVELES)
     .default('PRINCIPIANTE')
     .optional()
     .messages({
       'any.only': 'El nivel debe ser uno de: {#valids}'
+    }),
+
+  tipo: Joi.string()
+    .valid(...TIPOS_CATEGORIA)
+    .required()
+    .messages({
+      'any.only': 'El tipo debe ser uno de: {#valids}',
+      'any.required': 'El tipo de categoría es requerido'
     })
 });
 
@@ -126,7 +148,7 @@ export const updateCategoriaSchema = Joi.object({
       'string.max': 'El nombre no puede exceder 100 caracteres'
     }),
 
-  edad_min: Joi.number()
+  edadMinima: Joi.number()
     .integer()
     .min(3)
     .max(100)
@@ -135,13 +157,13 @@ export const updateCategoriaSchema = Joi.object({
       'number.max': 'La edad mínima no puede ser mayor a 100 años'
     }),
 
-  edad_max: Joi.number()
+  edadMaxima: Joi.number()
     .integer()
     .min(3)
     .max(100)
-    .when('edad_min', {
+    .when('edadMinima', {
       is: Joi.exist(),
-      then: Joi.number().greater(Joi.ref('edad_min')),
+      then: Joi.number().greater(Joi.ref('edadMinima')),
       otherwise: Joi.number()
     })
     .messages({
@@ -157,22 +179,29 @@ export const updateCategoriaSchema = Joi.object({
       'string.max': 'La descripción no puede exceder 500 caracteres'
     }),
 
-  activa: Joi.boolean(),
+  estado: Joi.string()
+    .valid('ACTIVA', 'INACTIVA', 'SUSPENDIDA'),
 
-  cuota_mensual: Joi.number()
-    .min(0)
-    .messages({
-      'number.min': 'La cuota mensual no puede ser negativa'
-    }),
+  precio: Joi.object({
+    cuotaMensual: Joi.number()
+      .min(0)
+      .messages({
+        'number.min': 'La cuota mensual no puede ser negativa'
+      }),
+    descuentos: Joi.object({
+      hermanos: Joi.number().min(0).max(100),
+      pagoAnual: Joi.number().min(0).max(100),
+      primeraVez: Joi.number().min(0).max(100)
+    }).optional()
+  }),
 
   horarios: Joi.array()
     .items(horarioSchema)
-    .min(1)
     .messages({
       'array.min': 'Debe especificar al menos un horario'
     }),
 
-  max_alumnos: Joi.number()
+  cupoMaximo: Joi.number()
     .integer()
     .min(1)
     .max(100)
@@ -181,10 +210,22 @@ export const updateCategoriaSchema = Joi.object({
       'number.max': 'No puede exceder 100 alumnos'
     }),
 
+  configuracionPago: Joi.object({
+    permitePagoMensual: Joi.boolean(),
+    permitePagoAnual: Joi.boolean(),
+    requiereInscripcion: Joi.boolean()
+  }),
+
   nivel: Joi.string()
     .valid(...NIVELES)
     .messages({
       'any.only': 'El nivel debe ser uno de: {#valids}'
+    }),
+
+  tipo: Joi.string()
+    .valid(...TIPOS_CATEGORIA)
+    .messages({
+      'any.only': 'El tipo debe ser uno de: {#valids}'
     })
 }).min(1).messages({
   'object.min': 'Debe proporcionar al menos un campo para actualizar'
@@ -205,10 +246,10 @@ export const categoriaIdSchema = Joi.object({
 export const categoriaQuerySchema = Joi.object({
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(10),
-  sort: Joi.string().valid('createdAt', '-createdAt', 'nombre', '-nombre', 'cuota_mensual', '-cuota_mensual').default('-createdAt'),
-  activa: Joi.boolean(),
+  sort: Joi.string().valid('createdAt', '-createdAt', 'nombre', '-nombre', 'precio.cuotaMensual', '-precio.cuotaMensual').default('-createdAt'),
+  estado: Joi.string().valid('ACTIVA', 'INACTIVA', 'SUSPENDIDA'),
   nivel: Joi.string().valid(...NIVELES),
-  edad_min: Joi.number().integer().min(3).max(100),
-  edad_max: Joi.number().integer().min(3).max(100),
+  edadMinima: Joi.number().integer().min(3).max(100),
+  edadMaxima: Joi.number().integer().min(3).max(100),
   search: Joi.string().max(50).trim()
 });

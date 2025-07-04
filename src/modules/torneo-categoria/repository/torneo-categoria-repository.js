@@ -6,7 +6,7 @@ export const create = async (data) => {
 };
 
 export const findByTorneo = async (idTorneo, options = {}) => {
-    const { page = 1, limit = 10, sort = '-createdAt', activa = true } = options;
+    const { page = 1, limit = 10, sort = '-createdAt', estado = 'ACTIVO' } = options;
     
     const skip = (page - 1) * limit;
     const query = { torneo: idTorneo };
@@ -23,7 +23,7 @@ export const findByTorneo = async (idTorneo, options = {}) => {
             })
             .populate({
                 path: 'categoria',
-                select: 'nombre descripcion edad_min edad_max nivel cuota_mensual'
+                select: 'nombre descripcion edadMinima edadMaxima nivel precio.cuotaMensual'
             })
             .sort(sort)
             .skip(skip)
@@ -43,7 +43,7 @@ export const findByTorneo = async (idTorneo, options = {}) => {
 };
 
 export const findByCategoria = async (idCategoria, options = {}) => {
-    const { page = 1, limit = 10, sort = '-createdAt', activa = true } = options;
+    const { page = 1, limit = 10, sort = '-createdAt', estado = 'ACTIVO' } = options;
     
     const skip = (page - 1) * limit;
     const query = { categoria: idCategoria };
@@ -60,7 +60,7 @@ export const findByCategoria = async (idCategoria, options = {}) => {
             })
             .populate({
                 path: 'categoria',
-                select: 'nombre descripcion edad_min edad_max nivel cuota_mensual'
+                select: 'nombre descripcion edadMinima edadMaxima nivel precio.cuotaMensual'
             })
             .sort(sort)
             .skip(skip)
@@ -107,7 +107,7 @@ export const findAll = async (options = {}) => {
             })
             .populate({
                 path: 'categoria',
-                select: 'nombre descripcion edad_min edad_max nivel cuota_mensual'
+                select: 'nombre descripcion edadMinima edadMaxima nivel precio.cuotaMensual'
             })
             .sort(sort)
             .skip(skip)
@@ -134,7 +134,7 @@ export const updateById = async (id, torneoCategoriaData) => {
         })
         .populate({
             path: 'categoria',
-            select: 'nombre descripcion edad_min edad_max nivel cuota_mensual'
+            select: 'nombre descripcion edadMinima edadMaxima nivel precio.cuotaMensual'
         });
 };
 
@@ -142,14 +142,14 @@ export const deleteById = async (id) => {
     // Implementar eliminación lógica en lugar de física
     return await TorneoCategoria.findByIdAndUpdate(
         id, 
-        { activa: false }, 
+        { estado: 'INACTIVO' }, 
         { new: true }
     ).populate({
         path: 'torneo',
         select: 'nombre descripcion fecha_inicio fecha_fin lugar estado'
     }).populate({
         path: 'categoria',
-        select: 'nombre descripcion edad_min edad_max nivel cuota_mensual'
+        select: 'nombre descripcion edadMinima edadMaxima nivel precio.cuotaMensual'
     });
 };
 
@@ -161,7 +161,7 @@ export const findById = async (id) => {
         })
         .populate({
             path: 'categoria',
-            select: 'nombre descripcion edad_min edad_max nivel cuota_mensual'
+            select: 'nombre descripcion edadMinima edadMaxima nivel precio.cuotaMensual'
         });
 };
 
@@ -177,6 +177,6 @@ export const findByTorneoAndCategoria = async (idTorneo, idCategoria) => {
     })
     .populate({
         path: 'categoria',
-        select: 'nombre descripcion edad_min edad_max nivel cuota_mensual'
+        select: 'nombre descripcion edadMinima edadMaxima nivel precio.cuotaMensual'
     });
 };
