@@ -317,7 +317,7 @@ categoriaSchema.pre('save', function(next) {
     this.edad_max = this.edadMaxima;
   }
   if (this.isModified('estado')) {
-    this.activa = this.estado === 'ACTIVA';
+    this.set('activa', this.estado === 'ACTIVA', { strict: false });
   }
   if (this.isModified('cupoMaximo')) {
     this.max_alumnos = this.cupoMaximo;
