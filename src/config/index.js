@@ -12,6 +12,38 @@ if (missingEnvVars.length > 0) {
   process.exit(1);
 }
 
+// Función helper para obtener URL del frontend basada en el entorno
+function getFrontendUrl() {
+  // Si está definida explícitamente, usarla
+  if (process.env.FRONTEND_URL) {
+    return process.env.FRONTEND_URL;
+  }
+  
+  // Si estamos en producción, usar URL de producción por defecto
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://proyfrontendgrupo06.onrender.com';
+  }
+  
+  // En desarrollo, usar localhost
+  return 'http://localhost:4200';
+}
+
+// Función helper para obtener callback URL de Google basada en el entorno
+function getGoogleCallbackUrl() {
+  // Si está definida explícitamente, usarla
+  if (process.env.GOOGLE_CALLBACK_URL) {
+    return process.env.GOOGLE_CALLBACK_URL;
+  }
+  
+  // Si estamos en producción, usar URL de producción por defecto
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://trabajo-final-psw.onrender.com/api/auth/google/callback';
+  }
+  
+  // En desarrollo, usar localhost
+  return 'http://localhost:3000/api/auth/google/callback';
+}
+
 const config = {
   port: parseInt(process.env.PORT) || 3000,
   env: process.env.NODE_ENV || 'development',
@@ -20,9 +52,9 @@ const config = {
   jwtExpires: process.env.JWT_EXPIRES || '24h',
   googleClientId: process.env.GOOGLE_CLIENT_ID,
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  googleCallbackUrl: process.env.GOOGLE_CALLBACK_URL,
+  googleCallbackUrl: getGoogleCallbackUrl(),
   // URL de la aplicación frontend Angular para redirecciones OAuth
-  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200',
+  frontendUrl: getFrontendUrl(),
   bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS) || 12,
   corsOrigin: process.env.CORS_ORIGIN || '*',
   rateLimit: {
