@@ -14,10 +14,16 @@ const alumnoSchema = new mongoose.Schema({
 
     tutor: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Persona',
+        ref: 'User', // Cambiado de 'Persona' a 'User'
         required: true
     },
 
+    // Categoría principal del alumno
+    categoriaPrincipal: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Categoria',
+        required: false // Opcional para compatibilidad con datos existentes
+    },
 
     // Datos específicos del Alumno
     numero_socio: {
@@ -72,14 +78,6 @@ alumnoSchema.index({ persona_id: 1 });
 alumnoSchema.virtual('persona_datos', {
     ref: 'Persona',
     localField: 'persona',
-    foreignField: '_id',
-    justOne: true
-});
-
-//virtual para obtener datos completos del tutor
-alumnoSchema.virtual('tutor_datos', {
-    ref: 'Persona',
-    localField: 'tutor',
     foreignField: '_id',
     justOne: true
 });

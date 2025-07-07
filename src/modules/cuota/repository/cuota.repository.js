@@ -35,7 +35,7 @@ export const findByEstado = async (estado) => {
       path: 'alumno_categoria_id',
       populate: [
         { path: 'alumno', model: 'Alumno', populate: { path: 'persona', model: 'Persona' } },
-        { path: 'categoria_datos' }
+        { path: 'categoria', model: 'Categoria' }
       ]
     }
   ];

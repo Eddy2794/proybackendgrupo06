@@ -13,6 +13,10 @@ export const createAlumnoSchema = Joi.object({
     .pattern(/^[0-9a-fA-F]{24}$/)
     .required(),
 
+    categoriaPrincipal: Joi.string()
+    .pattern(/^[0-9a-fA-F]{24}$/)
+    .optional(),
+
     numero_socio: Joi.string()
     .min(3)
     .max(20)
@@ -50,6 +54,9 @@ export const updateAlumnoSchema = Joi.object({
     .pattern(/^[0-9a-fA-F]{24}$/),
 
     tutor: Joi.string()
+    .pattern(/^[0-9a-fA-F]{24}$/),
+
+    categoriaPrincipal: Joi.string()
     .pattern(/^[0-9a-fA-F]{24}$/),
 
     numero_socio: Joi.string()
