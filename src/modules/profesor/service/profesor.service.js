@@ -51,9 +51,20 @@ export const updateProfesor = async (id, profesorData) => {
 export const deleteProfesor = async (id) => {
     // Desactivar relaciones en profesor-categoria usando el service
     await profesorCategoriaService.desactivarPorProfesor(id);
-    const profesor = await profesorRepository.deleteById(id);
+
+    // Buscar el profesor para obtener el id de persona
+    const profesor = await profesorRepository.findById(id);
     if (!profesor) {
         throw new Error('Error al eliminar el profesor');
     }
-    return profesor;
+
+    // Eliminación lógica: poner activo_laboral en false
+    await profesorRepository.updateById(id, { activo_laboral: false });
+
+    // Eliminación lógica de la persona asociada
+    if (profesor.persona && profesor.persona._id) {
+        await personaService.deletePersona(profesor.persona._id);
+    }
+
+    return { ...profesor.toObject(), activo_laboral: false };
 };
