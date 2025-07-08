@@ -21,7 +21,7 @@ export const findByCategoria = async (idCategoria, options = {}) => {
                 path: 'profesor',
                 populate: {
                     path: 'persona',
-                    select: 'nombre apellido email telefono dni'
+                    select: 'nombres apellidos email telefono dni'
                 }
             })
             .populate('categoria')
