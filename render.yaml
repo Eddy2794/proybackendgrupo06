@@ -9,7 +9,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: FRONTEND_URL
-        value: https://proyfrontendgrupo06.onrender.com
+        value: https://proyfrontendgrupo06-1.onrender.com
       - key: GOOGLE_CALLBACK_URL
         value: https://trabajo-final-psw.onrender.com/api/auth/google/callback
     # Variables de entorno que deben ser configuradas en Render Dashboard:
