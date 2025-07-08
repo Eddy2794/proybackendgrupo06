@@ -3,7 +3,11 @@ import * as alumnoService from '../service/alumno.service.js';
 export class AlumnoController {
     async createAlumno(req, res, next) {
         try {
+            console.log('Payload recibido en backend:', req.body);
+            console.log('Campo categoriaPrincipal:', req.body.categoriaPrincipal);
+            console.log('Tipo de categoriaPrincipal:', typeof req.body.categoriaPrincipal);
             const alumno = await alumnoService.createAlumno(req.body);
+            console.log('Alumno creado:', alumno);
             return res.success('Alumno creado exitosamente', alumno);
         } catch (error) {
             next(error);
@@ -12,10 +16,12 @@ export class AlumnoController {
 
     async getAllAlumnos(req, res, next) {
         try {
-            const { page = 1, limit = 10, estado, search } = req.query;
+            const { page = 1, limit = 10, estado, search, tutor_id, categoria_id } = req.query;
             const filters = {};
             if (estado) filters.estado = estado;
             if (search) filters.search = search;
+            if (tutor_id) filters.tutor_id = tutor_id;
+            if (categoria_id) filters.categoria_id = categoria_id;
 
             const options = { page: parseInt(page), limit: parseInt(limit) };
             const result = await alumnoService.getAllAlumnos(filters, options);

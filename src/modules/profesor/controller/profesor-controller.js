@@ -38,6 +38,7 @@ export class ProfesorController  {
             next(error);
         }
     }
+
     async deleteProfesor(req, res, next) {
         try{
             const { id } = req.params;

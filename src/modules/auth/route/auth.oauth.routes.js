@@ -54,7 +54,8 @@ router.get('/google/callback', passport.authenticate('google', { session: false 
     
     if (!user) {
       console.error('❌ No se pudo autenticar al usuario con Google');
-      return res.redirect(`${config.frontendUrl}/#/login?error=auth_failed`);
+      const base = config.frontendUrl.replace(/\/$/, '');
+      return res.redirect(`${base}/#/login?error=auth_failed&message=No se pudo autenticar con Google`);
     }
 
     // Asegurar que el último acceso esté actualizado (doble verificación)
@@ -85,12 +86,16 @@ router.get('/google/callback', passport.authenticate('google', { session: false 
     
     // Redirigir al frontend Angular usando hash routing
     const base = config.frontendUrl.replace(/\/$/, '');
-    // Redirige a la ruta de login con token en query
-    res.redirect(`${base}/#/login?token=${token}&method=google`);
+    // Asegurar que la redirección use el hash routing correctamente
+    // y maneje la URL raíz que luego redirigirá internamente al login
+    const redirectUrl = `${base}/#/login?token=${token}&method=google`;
+    console.log(`🔗 Redirigiendo a: ${redirectUrl}`);
+    res.redirect(redirectUrl);
     
   } catch (error) {
     console.error('❌ Error en callback de Google OAuth:', error);
-    res.redirect(`${config.frontendUrl}/#/login?error=server_error`);
+    const base = config.frontendUrl.replace(/\/$/, '');
+    res.redirect(`${base}/#/login?error=server_error&message=Error interno del servidor`);
   }
 });
 

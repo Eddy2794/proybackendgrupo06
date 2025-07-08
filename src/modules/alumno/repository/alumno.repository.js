@@ -11,14 +11,22 @@ export const createAlumno = async (data) => {
 export const findById = async (id) => {
     return await Alumno.findById(id)
         .populate('persona_datos')
-        .populate('tutor_datos');
+        .populate({
+            path: 'tutor',
+            populate: { path: 'persona' }
+        })
+        .populate('categoriaPrincipal');
 };
 
 //Obtener alumno por número de socio
 export const findByNumeroSocio = async (numeroSocio) => {
     return await Alumno.findOne({ numero_socio: numeroSocio })
         .populate('persona_datos')
-        .populate('tutor_datos');
+        .populate({
+            path: 'tutor',
+            populate: { path: 'persona' }
+        })
+        .populate('categoriaPrincipal');
 };
 
 //Obtener todos los alumnos (paginados)
@@ -27,13 +35,32 @@ export const findAll = async (filter = {}, options = {}) => {
     const skip = (page - 1) * limit;
 
     const query = {};
-    if (filter.estado) query.estado = filter.estado;
-    if (filter.tutor_id) query.tutor_id = filter.tutor_id;
+    if (filter.estado) {
+      query.estado = filter.estado;
+      if (filter.estado === 'INACTIVO') {
+        query.deleted = { $ne: null };
+      } else if (filter.estado === 'ACTIVO') {
+        query.deleted = null;
+      }
+    }
+    if (filter.tutor_id) query.tutor = filter.tutor_id;
+    if (filter.categoria_id) query.categoriaPrincipal = filter.categoria_id;
+    if (filter.search) {
+        query.$or = [
+            { numero_socio: { $regex: filter.search, $options: 'i' } },
+            { 'persona_datos.nombres': { $regex: filter.search, $options: 'i' } },
+            { 'persona_datos.apellidos': { $regex: filter.search, $options: 'i' } }
+        ];
+    }
 
     const alumnos = await Alumno
         .find(query)
         .populate('persona_datos')
-        .populate('tutor_datos')
+        .populate({
+            path: 'tutor',
+            populate: { path: 'persona' }
+        })
+        .populate('categoriaPrincipal')
         .sort(sort)
         .skip(skip)
         .limit(limit);
@@ -55,7 +82,11 @@ export const findAll = async (filter = {}, options = {}) => {
 export const updateById = async (id, data) => {
     return await Alumno.findByIdAndUpdate(id, data, { new: true })
         .populate('persona_datos')
-        .populate('tutor_datos');
+        .populate({
+            path: 'tutor',
+            populate: { path: 'persona' }
+        })
+        .populate('categoriaPrincipal');
 };
 
 //Eliminación fisica permanente
@@ -98,7 +129,11 @@ export const restoreById = async (id, restoredBy = null) => {
 export const findByTutorId = async (tutorId) => {
     return await Alumno.find({ tutor: tutorId })
         .populate('persona_datos')
-        .populate('tutor_datos');
+        .populate({
+            path: 'tutor',
+            populate: { path: 'persona' }
+        })
+        .populate('categoriaPrincipal');
 };
 
 // Buscar un alumno por ID, incluyendo eliminados lógicamente

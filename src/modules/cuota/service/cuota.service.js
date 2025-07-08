@@ -52,7 +52,19 @@ export const restoreCuota = async (id, restoredBy = null) => {
 
 // Obtener todas las cuotas por estado (PENDIENTE, PAGA, VENCIDA)
 export const obtenerCuotasPorEstado = async (estado) => {
-  return await cuotaRepo.findByEstado(estado);
+  const cuotas = await cuotaRepo.findByEstado(estado);
+  const hoy = new Date();
+  // Actualizar estado a VENCIDA si corresponde (solo en la respuesta, usando objeto plano)
+  return cuotas.map(cuota => {
+    const plain = typeof cuota.toObject === 'function' ? cuota.toObject() : cuota;
+    if (
+      plain.estado === 'PENDIENTE' &&
+      new Date(plain.fecha_vencimiento) < hoy
+    ) {
+      return { ...plain, estado: 'VENCIDA' };
+    }
+    return plain;
+  });
 };
 
 // Obtener todas las cuotas de un periodo específico (año y mes)

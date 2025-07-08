@@ -21,7 +21,14 @@ export const getAlumnoByNumeroSocio = async (numero_socio) => {
 
 //Obtener todos los alumnos (activos por defecto)
 export const getAllAlumnos = async (filters = {}, options = {}) => {
-    return await alumnoRepo.findAll(filters, options);
+    // Normalizar nombres de filtros
+    const normalizedFilters = {};
+    if (filters.estado) normalizedFilters.estado = filters.estado;
+    if (filters.tutor_id) normalizedFilters.tutor_id = filters.tutor_id;
+    if (filters.categoria_id) normalizedFilters.categoria_id = filters.categoria_id;
+    if (filters.search) normalizedFilters.search = filters.search;
+    
+    return await alumnoRepo.findAll(normalizedFilters, options);
 };
 
 

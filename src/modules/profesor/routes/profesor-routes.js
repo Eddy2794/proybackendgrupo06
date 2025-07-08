@@ -13,11 +13,11 @@ const applyValidation = (schemaName, location = 'body') => {
     return schema ? [validateSchema(schema, location)] : [];
   };
 
-router.post('/',authMiddleware, ...applyValidation('createProfesorSchema'),profesorController.createProfesor);                 
-router.get('/', authMiddleware, ...applyValidation('profesorQuerySchema'), profesorController.getProfesores); //paginacion
-router.get('/:id', authMiddleware, validateObjectId('id'), profesorController.getProfesorById);
-router.put('/:id', authMiddleware, validateObjectId('id'), ...applyValidation('updateProfesorSchema'), profesorController.updateProfesor);                 
-router.delete('/:id', authMiddleware, validateObjectId('id'), profesorController.deleteProfesor);         
+  router.post('/',authMiddleware, ...applyValidation('createProfesorSchema'),profesorController.createProfesor);                 
+  router.get('/', authMiddleware, ...applyValidation('profesorQuerySchema'), profesorController.getProfesores); //paginacion
+  router.get('/:id', authMiddleware, validateObjectId('id'), profesorController.getProfesorById);
+  router.put('/:id', authMiddleware, validateObjectId('id'), ...applyValidation('updateProfesorSchema'), profesorController.updateProfesor);                 
+  router.delete('/:id', authMiddleware, validateObjectId('id'), profesorController.deleteProfesor);                
 
 
 const profesorRouteConfigs = [

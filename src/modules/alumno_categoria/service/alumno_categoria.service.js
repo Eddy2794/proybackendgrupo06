@@ -1,4 +1,6 @@
 import * as alumnoCategoriaRepo from '../repository/alumno_categoria.repository.js';
+import * as cuotaService from '../../cuota/service/cuota.service.js';
+import * as categoriaRepo from '../../categoria/repository/categoria.repository.js';
 
 // Crear una nueva relación alumno-categoría
 export const createAlumnoCategoria = async (data) => {
@@ -9,7 +11,42 @@ export const createAlumnoCategoria = async (data) => {
 
     data.estado = data.estado || 'ACTIVO';
 
-    return await alumnoCategoriaRepo.create(data);
+    // Crear la relación
+    const relacion = await alumnoCategoriaRepo.create(data);
+
+    // Lógica de alta automática de cuota
+    try {
+        // Obtener la categoría para el monto
+        const categoria = await categoriaRepo.findById(data.categoria);
+        if (categoria) {
+            const hoy = new Date();
+            const meses = [
+                "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+            ];
+            const mes = meses[hoy.getMonth()]; // mes como palabra
+            const anio = hoy.getFullYear();
+            const fechaVencimiento = new Date(hoy);
+            fechaVencimiento.setDate(fechaVencimiento.getDate() + 10); // 10 días después de la inscripción
+
+            await cuotaService.crearCuota({
+                alumno_categoria_id: relacion._id,
+                mes,
+                anio,
+                monto: categoria.precio.cuotaMensual,
+                estado: 'PENDIENTE',
+                fecha_vencimiento: fechaVencimiento,
+                descuento: 0,
+                recargo: 0,
+                observaciones: 'Cuota generada automáticamente al inscribir al alumno en la categoría.'
+            });
+        }
+    } catch (e) {
+        // No lanzar error, solo loguear
+        console.error('No se pudo crear la cuota automáticamente:', e.message);
+    }
+
+    return relacion;
 };
 
 // Obtener por ID
