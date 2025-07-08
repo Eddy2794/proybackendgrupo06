@@ -21,7 +21,7 @@ function getFrontendUrl() {
   
   // Si estamos en producción, usar URL de producción por defecto
   if (process.env.NODE_ENV === 'production') {
-    return 'https://proyfrontendgrupo06.onrender.com';
+    return 'https://proyfrontendgrupo06-1.onrender.com';
   }
   
   // En desarrollo, usar localhost
