@@ -61,7 +61,7 @@ app.use(cors(corsOptions));
 app.use(helmetConfig);
 
 // Rate limiting general
-app.use(generalRateLimit);
+// app.use(generalRateLimit);
 
 // Middleware de respuesta estandarizada
 app.use(responseMiddleware);
