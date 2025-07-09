@@ -798,3 +798,114 @@ export const removeProfileImage = async (userId) => {
     throw new Error('Error eliminando imagen de perfil');
   }
 };
+
+/**
+ * Reset password por administrador
+ */
+export const resetUserPassword = async (targetUserId, adminUserId, newPassword) => {
+  try {
+    // Verificar que el administrador existe y tiene permisos
+    const adminUser = await userRepo.findById(adminUserId);
+    if (!adminUser) {
+      throw new Error('Administrador no encontrado');
+    }
+
+    if (!['ADMIN', 'SUPER_ADMIN'].includes(adminUser.rol)) {
+      throw new Error('No tienes permisos para resetear contraseñas');
+    }
+
+    // Buscar el usuario objetivo
+    const targetUser = await userRepo.findById(targetUserId);
+    if (!targetUser) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    // Validar la nueva contraseña
+    if (!newPassword || newPassword.length < 6) {
+      throw new Error('La nueva contraseña debe tener al menos 6 caracteres');
+    }
+
+    // Actualizar contraseña (el modelo se encarga del hash con bcrypt)
+    targetUser.password = newPassword;
+    
+    // Resetear intentos de login si los tiene
+    targetUser.intentosLogin = 0;
+    targetUser.bloqueadoHasta = undefined;
+    
+    await targetUser.save();
+
+    return { 
+      message: `Contraseña reseteada correctamente para el usuario ${targetUser.username}`,
+      temporaryPassword: newPassword // Solo para que el admin se la pueda dar al usuario
+    };
+  } catch (error) {
+    console.error('Error reseteando contraseña:', error);
+    if (error.message.includes('no encontrado') || 
+        error.message.includes('permisos') || 
+        error.message.includes('caracteres')) {
+      throw error;
+    }
+    throw new Error('Error reseteando contraseña del usuario');
+  }
+};
+
+/**
+ * Reset password por administrador (versión desarrollo)
+ */
+export const resetUserPasswordDev = async (targetUserId, adminUserId, newPassword = null) => {
+  console.log('🚧 [DEV SERVICE] Reset password por administrador');
+  
+  // Verificar que estamos en desarrollo
+  if (config.env !== 'development') {
+    throw new Error('Este método solo está disponible en entorno de desarrollo');
+  }
+
+  try {
+    // Verificar que el administrador existe y tiene permisos
+    const adminUser = await userRepo.findById(adminUserId);
+    if (!adminUser) {
+      throw new Error('Administrador no encontrado');
+    }
+
+    if (!['ADMIN', 'SUPER_ADMIN'].includes(adminUser.rol)) {
+      throw new Error('No tienes permisos para resetear contraseñas');
+    }
+
+    // Buscar el usuario objetivo
+    const targetUser = await userRepo.findById(targetUserId);
+    if (!targetUser) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    // Generar contraseña temporal si no se proporciona
+    const temporaryPassword = newPassword || Math.random().toString(36).slice(-8);
+
+    // Validar la nueva contraseña
+    if (temporaryPassword.length < 6) {
+      throw new Error('La nueva contraseña debe tener al menos 6 caracteres');
+    }
+
+    // Actualizar contraseña (el modelo se encarga del hash con bcrypt)
+    targetUser.password = temporaryPassword;
+    
+    // Resetear intentos de login si los tiene
+    targetUser.intentosLogin = 0;
+    targetUser.bloqueadoHasta = undefined;
+    
+    await targetUser.save();
+
+    return { 
+      message: `Contraseña reseteada correctamente para el usuario ${targetUser.username}`,
+      temporaryPassword: temporaryPassword,
+      username: targetUser.username
+    };
+  } catch (error) {
+    console.error('Error reseteando contraseña (dev):', error);
+    if (error.message.includes('no encontrado') || 
+        error.message.includes('permisos') || 
+        error.message.includes('caracteres')) {
+      throw error;
+    }
+    throw new Error('Error reseteando contraseña del usuario');
+  }
+};

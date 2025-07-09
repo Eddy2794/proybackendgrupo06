@@ -40,10 +40,16 @@ const changePasswordMiddlewares = [
 
 const authRequiredMiddlewares = [authMiddleware];
 
+const resetPasswordMiddlewares = [
+  authMiddleware,
+  validateSchema(authValidators.resetPasswordSchema)
+];
+
 // Rutas
 router.post('/register', ...registerMiddlewares, authController.register);
 router.post('/login', ...loginMiddlewares, authController.login);
 router.post('/change-password', ...changePasswordMiddlewares, authController.changePassword);
+router.post('/reset-password/:userId', ...resetPasswordMiddlewares, authController.resetUserPassword);
 router.post('/logout', ...authRequiredMiddlewares, authController.logout);
 router.get('/profile', ...authRequiredMiddlewares, authController.getProfile);
 router.put('/profile', ...authRequiredMiddlewares, authController.updateProfile);
@@ -60,6 +66,10 @@ const authRouteConfigs = [
   }),
   routeConfig('POST', '/change-password', 'changePasswordSchema', 'Cambiar contraseña', {
     description: 'Cambia la contraseña del usuario autenticado',
+    auth: true
+  }),
+  routeConfig('POST', '/reset-password/:userId', 'resetPasswordSchema', 'Resetear contraseña de usuario', {
+    description: 'Permite a un administrador resetear la contraseña de otro usuario',
     auth: true
   }),
   routeConfig('POST', '/logout', null, 'Cerrar sesión', {

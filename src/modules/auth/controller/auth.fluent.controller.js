@@ -162,6 +162,38 @@ export class AuthController {
       next(error);
     }
   }
+
+  async resetUserPassword(req, res, next) {
+    try {
+      const { userId: adminUserId } = req.user;
+      const { userId: targetUserId } = req.params;
+      const { newPassword } = req.body;
+      
+      const result = await service.resetUserPassword(targetUserId, adminUserId, newPassword);
+      return res.success(result.message, {
+        temporaryPassword: result.temporaryPassword,
+        username: result.username || 'Usuario'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async resetUserPasswordDev(req, res, next) {
+    try {
+      const { userId: adminUserId } = req.user;
+      const { userId: targetUserId } = req.params;
+      const { newPassword } = req.body;
+      
+      const result = await service.resetUserPasswordDev(targetUserId, adminUserId, newPassword);
+      return res.success(result.message, {
+        temporaryPassword: result.temporaryPassword,
+        username: result.username
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const authController = new AuthController();

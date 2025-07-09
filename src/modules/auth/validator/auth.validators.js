@@ -34,3 +34,10 @@ export const changePasswordSchema = Joi.object({
   newPassword: Joi.string().min(6).required(),
   confirmPassword: Joi.string().valid(Joi.ref('newPassword')).required()
 });
+
+export const resetPasswordSchema = Joi.object({
+  newPassword: Joi.string().min(6).optional()
+    .messages({
+      'string.min': 'La nueva contraseña debe tener al menos 6 caracteres'
+    })
+});
