@@ -21,19 +21,84 @@ export const findByPersonaId = async (personaId) => {
     .populate('persona');
 };
 
+export const findByPersonaEmail = async (email) => {
+  return await User.findOne()
+    .populate({
+      path: 'persona',
+      match: { email: email }
+    })
+    .then(user => {
+      // Si la persona no coincide con el email, el populate devuelve null
+      return user && user.persona ? user : null;
+    });
+};
+
 export const findAll = async (filter = {}, options = {}) => {
   const { page = 1, limit = 10, sort = { createdAt: -1 } } = options;
   const skip = (page - 1) * limit;
   
+  // Crear query base
+  let query = { ...filter };
+  
+  // Si hay búsqueda, construir filtro de búsqueda
+  if (filter.search) {
+    const searchTerm = filter.search;
+    delete query.search; // Remover search del filtro principal
+    
+    // Buscar por username (directamente en el modelo User)
+    const usernameFilter = {
+      username: { $regex: searchTerm, $options: 'i' }
+    };
+    
+    // Para buscar en los datos de persona, necesitamos hacer un populate y filtrar
+    // Primero obtenemos los IDs de personas que coinciden con la búsqueda
+    const personaIds = await User.aggregate([
+      {
+        $lookup: {
+          from: 'personas',
+          localField: 'persona',
+          foreignField: '_id',
+          as: 'personaData'
+        }
+      },
+      {
+        $unwind: '$personaData'
+      },
+      {
+        $match: {
+          $or: [
+            { 'personaData.nombres': { $regex: searchTerm, $options: 'i' } },
+            { 'personaData.apellidos': { $regex: searchTerm, $options: 'i' } },
+            { 'personaData.email': { $regex: searchTerm, $options: 'i' } }
+          ]
+        }
+      },
+      {
+        $project: { _id: 1 }
+      }
+    ]);
+    
+    const userIdsFromPersona = personaIds.map(item => item._id);
+    
+    // Combinar búsqueda por username y por datos de persona
+    query = {
+      ...query,
+      $or: [
+        usernameFilter,
+        { _id: { $in: userIdsFromPersona } }
+      ]
+    };
+  }
+  
   const users = await User
-    .find(filter)
+    .find(query)
     .populate('persona')
     .select('-password')
     .sort(sort)
     .skip(skip)
     .limit(limit);
     
-  const total = await User.countDocuments(filter);
+  const total = await User.countDocuments(query);
   
   return {
     users,
@@ -66,15 +131,70 @@ export const findDeleted = async (filter = {}, options = {}) => {
   const { page = 1, limit = 10, sort = { deleted: -1 } } = options;
   const skip = (page - 1) * limit;
   
+  // Crear query base para usuarios eliminados
+  let query = { ...filter };
+  
+  // Si hay búsqueda, construir filtro de búsqueda
+  if (filter.search) {
+    const searchTerm = filter.search;
+    delete query.search; // Remover search del filtro principal
+    
+    // Buscar por username (directamente en el modelo User)
+    const usernameFilter = {
+      username: { $regex: searchTerm, $options: 'i' }
+    };
+    
+    // Para buscar en los datos de persona en usuarios eliminados
+    const personaIds = await User.aggregate([
+      {
+        $match: { deleted: { $ne: null } } // Solo usuarios eliminados
+      },
+      {
+        $lookup: {
+          from: 'personas',
+          localField: 'persona',
+          foreignField: '_id',
+          as: 'personaData'
+        }
+      },
+      {
+        $unwind: '$personaData'
+      },
+      {
+        $match: {
+          $or: [
+            { 'personaData.nombres': { $regex: searchTerm, $options: 'i' } },
+            { 'personaData.apellidos': { $regex: searchTerm, $options: 'i' } },
+            { 'personaData.email': { $regex: searchTerm, $options: 'i' } }
+          ]
+        }
+      },
+      {
+        $project: { _id: 1 }
+      }
+    ]);
+    
+    const userIdsFromPersona = personaIds.map(item => item._id);
+    
+    // Combinar búsqueda por username y por datos de persona
+    query = {
+      ...query,
+      $or: [
+        usernameFilter,
+        { _id: { $in: userIdsFromPersona } }
+      ]
+    };
+  }
+  
   const users = await User
-    .findDeleted(filter)
+    .findDeleted(query)
     .populate('persona')
     .select('-password')
     .sort(sort)
     .skip(skip)
     .limit(limit);
     
-  const total = await User.findDeleted(filter).countDocuments();
+  const total = await User.findDeleted(query).countDocuments();
   
   return {
     users,
@@ -91,15 +211,67 @@ export const findWithDeleted = async (filter = {}, options = {}) => {
   const { page = 1, limit = 10, sort = { createdAt: -1 } } = options;
   const skip = (page - 1) * limit;
   
+  // Crear query base
+  let query = { ...filter };
+  
+  // Si hay búsqueda, construir filtro de búsqueda
+  if (filter.search) {
+    const searchTerm = filter.search;
+    delete query.search; // Remover search del filtro principal
+    
+    // Buscar por username (directamente en el modelo User)
+    const usernameFilter = {
+      username: { $regex: searchTerm, $options: 'i' }
+    };
+    
+    // Para buscar en los datos de persona (incluyendo eliminados)
+    const personaIds = await User.aggregate([
+      {
+        $lookup: {
+          from: 'personas',
+          localField: 'persona',
+          foreignField: '_id',
+          as: 'personaData'
+        }
+      },
+      {
+        $unwind: '$personaData'
+      },
+      {
+        $match: {
+          $or: [
+            { 'personaData.nombres': { $regex: searchTerm, $options: 'i' } },
+            { 'personaData.apellidos': { $regex: searchTerm, $options: 'i' } },
+            { 'personaData.email': { $regex: searchTerm, $options: 'i' } }
+          ]
+        }
+      },
+      {
+        $project: { _id: 1 }
+      }
+    ]);
+    
+    const userIdsFromPersona = personaIds.map(item => item._id);
+    
+    // Combinar búsqueda por username y por datos de persona
+    query = {
+      ...query,
+      $or: [
+        usernameFilter,
+        { _id: { $in: userIdsFromPersona } }
+      ]
+    };
+  }
+  
   const users = await User
-    .findWithDeleted(filter)
+    .findWithDeleted(query)
     .populate('persona')
     .select('-password')
     .sort(sort)
     .skip(skip)
     .limit(limit);
     
-  const total = await User.findWithDeleted(filter).countDocuments();
+  const total = await User.findWithDeleted(query).countDocuments();
   
   return {
     users,

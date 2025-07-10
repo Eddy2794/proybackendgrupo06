@@ -4,6 +4,7 @@ import { authMiddleware } from '../../../middlewares/authMiddleware.js';
 import { 
   validarCrearCuota,
   validarCrearPagoAnual,
+  validarCrearPagoQR,
   validarPagoId,
   validarHistorialPagos,
   validarWebhook,
@@ -298,6 +299,102 @@ router.post('/cuota', authMiddleware, validarCrearCuota, pagoController.crearPre
  *         $ref: '#/components/responses/Unauthorized'
  */
 router.post('/anual', authMiddleware, validarCrearPagoAnual, pagoController.crearPreferenciaPagoAnual);
+
+/**
+ * @swagger
+ * /api/payments/qr:
+ *   post:
+ *     summary: Crea un pago QR para mostrar en pantalla
+ *     tags: [Pagos]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - categoriaId
+ *               - tipoPago
+ *             properties:
+ *               categoriaId:
+ *                 type: string
+ *                 description: ID de la categoría de escuela
+ *                 example: "60f7d123456789abcdef1234"
+ *               tipoPago:
+ *                 type: string
+ *                 enum: [cuota, anual]
+ *                 description: Tipo de pago (cuota mensual o anual)
+ *                 example: "cuota"
+ *               periodo:
+ *                 type: object
+ *                 description: Período del pago (requerido para cuota, opcional para anual)
+ *                 properties:
+ *                   mes:
+ *                     type: number
+ *                     minimum: 1
+ *                     maximum: 12
+ *                     example: 3
+ *                   anio:
+ *                     type: number
+ *                     minimum: 2020
+ *                     maximum: 2100
+ *                     example: 2025
+ *     responses:
+ *       200:
+ *         description: Pago QR creado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     preferenceId:
+ *                       type: string
+ *                       description: ID de la preferencia de MercadoPago
+ *                     pagoId:
+ *                       type: string
+ *                       description: ID del pago en nuestra base de datos
+ *                     qrData:
+ *                       type: string
+ *                       description: Datos del código QR
+ *                     initPoint:
+ *                       type: string
+ *                       description: URL para iniciar el pago en producción
+ *                     sandboxInitPoint:
+ *                       type: string
+ *                       description: URL para iniciar el pago en sandbox
+ *                     monto:
+ *                       type: number
+ *                       description: Monto total a pagar
+ *                     categoria:
+ *                       type: string
+ *                       description: Nombre de la categoría
+ *                     descripcion:
+ *                       type: string
+ *                       description: Descripción del pago
+ *                     expiresAt:
+ *                       type: string
+ *                       format: date-time
+ *                       description: Fecha de expiración del QR (30 minutos)
+ *                     metodoPago:
+ *                       type: string
+ *                       example: "QR"
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       409:
+ *         description: Ya existe un pago para este período
+ */
+router.post('/qr', authMiddleware, validarCrearPagoQR, pagoController.crearPagoQR);
 
 /**
  * @swagger

@@ -118,6 +118,17 @@ const userSchema = new mongoose.Schema({
     type: Date
   },
   
+  // Campos para reset de contraseña con código
+  resetPasswordCode: {
+    type: String,
+    default: null
+  },
+  
+  resetPasswordExpires: {
+    type: Date,
+    default: null
+  },
+  
   // Historial de autenticación
   historialAuth: [{
     fechaLogin: {

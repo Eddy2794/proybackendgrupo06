@@ -79,7 +79,7 @@ class PagoController {
         return res.error(error.message, 404);
       }
 
-      return res.error('Error interno del servidor', 500);
+      return errorResponse(res, 'Error interno del servidor', 500);
     }
   }
 
@@ -208,48 +208,96 @@ class PagoController {
   /**
    * Obtiene el historial de pagos del usuario actual
    */
-  async obtenerHistorialPagos(req, res) {
+  async obtenerHistorialPagos(req, res, next) {
     try {
+      logger.info('Iniciando obtención de historial de pagos', {
+        usuario: req.user?.userId,
+        query: req.query
+      });
+
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return errorResponse(res, 'Parámetros de consulta inválidos', 400, errors.array());
+        logger.error('Errores de validación en historial de pagos', { errors: errors.array() });
+        return res.validation('Parámetros de consulta inválidos', errors.array());
       }
 
-      const usuarioId = req.user.id;
-      const { estado, anio, mes, limite = 20, pagina = 1 } = req.query;
+      const usuarioId = req.user.userId;
+      const { estado, anio, mes, limit = 20, page = 1, tipoPeriodo } = req.query;
 
       const filtros = {};
       if (estado) filtros.estado = estado;
       if (anio) filtros.anio = parseInt(anio);
       if (mes) filtros.mes = parseInt(mes);
+      if (tipoPeriodo) {
+        // El frontend puede enviar 'mensual' o 'anual', mapear según sea necesario
+        if (tipoPeriodo === 'mensual') {
+          // Filtrar pagos que tengan mes definido
+          filtros['periodo.mes'] = { $exists: true };
+        } else if (tipoPeriodo === 'anual') {
+          // Filtrar pagos que NO tengan mes (pagos anuales)
+          filtros['periodo.mes'] = { $exists: false };
+        }
+      }
 
+      logger.info('Filtros aplicados para historial', { usuarioId, filtros });
+
+      // Llamar al servicio con logs adicionales
+      logger.info('Llamando a mercadoPagoService.obtenerHistorialUsuario...');
       const historial = await mercadoPagoService.obtenerHistorialUsuario(usuarioId, filtros);
+      
+      logger.info('Respuesta del servicio de historial', {
+        usuarioId,
+        tipoRespuesta: typeof historial,
+        esArray: Array.isArray(historial),
+        totalRegistros: historial?.length || 0,
+        primerosElementos: historial?.slice(0, 2) || []
+      });
+
+      // Verificar si historial es null o undefined
+      if (!historial) {
+        logger.warn('El servicio retornó null/undefined para el historial');
+        return res.success('Historial obtenido exitosamente', {
+          data: [],
+          pagination: {
+            total: 0,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            pages: 0
+          }
+        });
+      }
 
       // Implementar paginación
-      const inicio = (parseInt(pagina) - 1) * parseInt(limite);
-      const fin = inicio + parseInt(limite);
+      const inicio = (parseInt(page) - 1) * parseInt(limit);
+      const fin = inicio + parseInt(limit);
       const pagosPaginados = historial.slice(inicio, fin);
 
       const resultado = {
-        pagos: pagosPaginados,
-        paginacion: {
+        data: pagosPaginados,
+        pagination: {
           total: historial.length,
-          pagina: parseInt(pagina),
-          limite: parseInt(limite),
-          totalPaginas: Math.ceil(historial.length / parseInt(limite))
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(historial.length / parseInt(limit))
         }
       };
 
-      return successResponse(res, 'Historial obtenido exitosamente', resultado);
+      logger.info('Enviando respuesta de historial', {
+        totalPagos: resultado.data.length,
+        paginacion: resultado.pagination
+      });
+
+      return res.success('Historial obtenido exitosamente', resultado);
 
     } catch (error) {
       logger.error('Error obteniendo historial de pagos', {
         error: error.message,
-        usuario: req.user?.id,
+        stack: error.stack,
+        usuario: req.user?.userId,
         query: req.query
       });
 
-      return errorResponse(res, 'Error interno del servidor', 500);
+      next(error);
     }
   }
 
@@ -426,6 +474,54 @@ class PagoController {
 
       const errorUrl = `${process.env.MP_FAILURE_URL}?error=processing_error`;
       return res.redirect(errorUrl);
+    }
+  }
+
+  /**
+   * Crea un pago QR para mostrar en pantalla
+   */
+  async crearPagoQR(req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return errorResponse(res, 'Datos de entrada inválidos', 400, errors.array());
+      }
+
+      const usuarioId = req.user.userId;
+      const { categoriaId, tipoPago, periodo } = req.body;
+
+      const resultado = await mercadoPagoService.crearPagoQR(
+        usuarioId, 
+        categoriaId, 
+        tipoPago,
+        periodo
+      );
+
+      logger.info('Pago QR creado exitosamente', {
+        usuario: usuarioId,
+        preferenceId: resultado.preferenceId,
+        monto: resultado.monto,
+        tipo: tipoPago
+      });
+
+      return res.success('Pago QR creado exitosamente', resultado);
+
+    } catch (error) {
+      logger.error('Error creando pago QR', {
+        error: error.message,
+        usuario: req.user?.id,
+        body: req.body
+      });
+
+      if (error.message.includes('Ya existe un pago')) {
+        return errorResponse(res, error.message, 409);
+      }
+
+      if (error.message.includes('no encontrada')) {
+        return errorResponse(res, error.message, 404);
+      }
+
+      return errorResponse(res, 'Error interno del servidor', 500);
     }
   }
 }

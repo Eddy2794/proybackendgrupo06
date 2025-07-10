@@ -40,10 +40,34 @@ const changePasswordMiddlewares = [
 
 const authRequiredMiddlewares = [authMiddleware];
 
+const resetPasswordMiddlewares = [
+  authMiddleware,
+  validateSchema(authValidators.resetPasswordSchema)
+];
+
+const forgotPasswordMiddlewares = [
+  authRateLimit,
+  validateSchema(authValidators.forgotPasswordSchema)
+];
+
+const resetPasswordWithTokenMiddlewares = [
+  authRateLimit,
+  validateSchema(authValidators.resetPasswordWithTokenSchema)
+];
+
+const resetPasswordSimpleMiddlewares = [
+  authRateLimit,
+  validateSchema(authValidators.resetPasswordSimpleSchema)
+];
+
 // Rutas
 router.post('/register', ...registerMiddlewares, authController.register);
 router.post('/login', ...loginMiddlewares, authController.login);
 router.post('/change-password', ...changePasswordMiddlewares, authController.changePassword);
+router.post('/reset-password/:userId', ...resetPasswordMiddlewares, authController.resetUserPassword);
+router.post('/forgot-password', ...forgotPasswordMiddlewares, authController.forgotPassword);
+router.post('/reset-password-with-code', ...resetPasswordWithTokenMiddlewares, authController.resetPasswordWithCode);
+router.post('/reset-password-simple', ...resetPasswordSimpleMiddlewares, authController.resetPasswordSimple);
 router.post('/logout', ...authRequiredMiddlewares, authController.logout);
 router.get('/profile', ...authRequiredMiddlewares, authController.getProfile);
 router.put('/profile', ...authRequiredMiddlewares, authController.updateProfile);
@@ -60,6 +84,10 @@ const authRouteConfigs = [
   }),
   routeConfig('POST', '/change-password', 'changePasswordSchema', 'Cambiar contraseña', {
     description: 'Cambia la contraseña del usuario autenticado',
+    auth: true
+  }),
+  routeConfig('POST', '/reset-password/:userId', 'resetPasswordSchema', 'Resetear contraseña de usuario', {
+    description: 'Permite a un administrador resetear la contraseña de otro usuario',
     auth: true
   }),
   routeConfig('POST', '/logout', null, 'Cerrar sesión', {
@@ -81,6 +109,15 @@ const authRouteConfigs = [
   routeConfig('DELETE', '/profile/image', null, 'Eliminar imagen de perfil', {
     description: 'Elimina la imagen de perfil del usuario autenticado',
     auth: true
+  }),
+  routeConfig('POST', '/forgot-password', 'forgotPasswordSchema', 'Solicitar reset de contraseña', {
+    description: 'Envía un código de verificación al email del usuario para reset de contraseña'
+  }),
+  routeConfig('POST', '/reset-password-with-code', 'resetPasswordWithTokenSchema', 'Reset contraseña con código', {
+    description: 'Restablece la contraseña usando el código de verificación enviado por email'
+  }),
+  routeConfig('POST', '/reset-password-simple', 'resetPasswordSimpleSchema', 'Reset contraseña simple', {
+    description: 'Restablece la contraseña directamente si el email existe en el sistema'
   })
 ];
 

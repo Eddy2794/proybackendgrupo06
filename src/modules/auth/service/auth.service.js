@@ -552,7 +552,7 @@ export const registerDev = async ({ personaData, username, password }) => {
   }
 };
 
-export const loginDev = async ({ username, password }) => {
+export const loginDev = async ({ username, password }, req = null) => {
   console.log('🚧 [DEV SERVICE] Login con contraseña en texto plano');
   
   // Verificar que estamos en desarrollo
@@ -796,5 +796,241 @@ export const removeProfileImage = async (userId) => {
       throw error;
     }
     throw new Error('Error eliminando imagen de perfil');
+  }
+};
+
+/**
+ * Reset password por administrador
+ */
+export const resetUserPassword = async (targetUserId, adminUserId, newPassword) => {
+  try {
+    // Verificar que el administrador existe y tiene permisos
+    const adminUser = await userRepo.findById(adminUserId);
+    if (!adminUser) {
+      throw new Error('Administrador no encontrado');
+    }
+
+    if (!['ADMIN', 'SUPER_ADMIN'].includes(adminUser.rol)) {
+      throw new Error('No tienes permisos para resetear contraseñas');
+    }
+
+    // Buscar el usuario objetivo
+    const targetUser = await userRepo.findById(targetUserId);
+    if (!targetUser) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    // Validar la nueva contraseña
+    if (!newPassword || newPassword.length < 6) {
+      throw new Error('La nueva contraseña debe tener al menos 6 caracteres');
+    }
+
+    // Actualizar contraseña (el modelo se encarga del hash con bcrypt)
+    targetUser.password = newPassword;
+    
+    // Resetear intentos de login si los tiene
+    targetUser.intentosLogin = 0;
+    targetUser.bloqueadoHasta = undefined;
+    
+    await targetUser.save();
+
+    return { 
+      message: `Contraseña reseteada correctamente para el usuario ${targetUser.username}`,
+      temporaryPassword: newPassword // Solo para que el admin se la pueda dar al usuario
+    };
+  } catch (error) {
+    console.error('Error reseteando contraseña:', error);
+    if (error.message.includes('no encontrado') || 
+        error.message.includes('permisos') || 
+        error.message.includes('caracteres')) {
+      throw error;
+    }
+    throw new Error('Error reseteando contraseña del usuario');
+  }
+};
+
+/**
+ * Reset password por administrador (versión desarrollo)
+ */
+export const resetUserPasswordDev = async (targetUserId, adminUserId, newPassword = null) => {
+  console.log('🚧 [DEV SERVICE] Reset password por administrador');
+  
+  // Verificar que estamos en desarrollo
+  if (config.env !== 'development') {
+    throw new Error('Este método solo está disponible en entorno de desarrollo');
+  }
+
+  try {
+    // Verificar que el administrador existe y tiene permisos
+    const adminUser = await userRepo.findById(adminUserId);
+    if (!adminUser) {
+      throw new Error('Administrador no encontrado');
+    }
+
+    if (!['ADMIN', 'SUPER_ADMIN'].includes(adminUser.rol)) {
+      throw new Error('No tienes permisos para resetear contraseñas');
+    }
+
+    // Buscar el usuario objetivo
+    const targetUser = await userRepo.findById(targetUserId);
+    if (!targetUser) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    // Generar contraseña temporal si no se proporciona
+    const temporaryPassword = newPassword || Math.random().toString(36).slice(-8);
+
+    // Validar la nueva contraseña
+    if (temporaryPassword.length < 6) {
+      throw new Error('La nueva contraseña debe tener al menos 6 caracteres');
+    }
+
+    // Actualizar contraseña (el modelo se encarga del hash con bcrypt)
+    targetUser.password = temporaryPassword;
+    
+    // Resetear intentos de login si los tiene
+    targetUser.intentosLogin = 0;
+    targetUser.bloqueadoHasta = undefined;
+    
+    await targetUser.save();
+
+    return { 
+      message: `Contraseña reseteada correctamente para el usuario ${targetUser.username}`,
+      temporaryPassword: temporaryPassword,
+      username: targetUser.username
+    };
+  } catch (error) {
+    console.error('Error reseteando contraseña (dev):', error);
+    if (error.message.includes('no encontrado') || 
+        error.message.includes('permisos') || 
+        error.message.includes('caracteres')) {
+      throw error;
+    }
+    throw new Error('Error reseteando contraseña del usuario');
+  }
+};
+
+export const forgotPassword = async (email) => {
+  try {
+    // Buscar usuario por email a través de la persona
+    const user = await userRepo.findByPersonaEmail(email);
+    
+    if (!user) {
+      // Por seguridad, no revelar si el email existe o no
+      return { 
+        success: true, 
+        message: 'Si el email existe en nuestro sistema, recibirás un código de verificación.' 
+      };
+    }
+
+    // Generar código de 6 dígitos
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Guardar el código con expiración de 15 minutos
+    user.resetPasswordCode = resetCode;
+    user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+    await user.save();
+
+    // En un entorno real, aquí enviarías el email
+    // Por ahora, log para desarrollo
+    console.log(`Código de reset para ${email}: ${resetCode}`);
+    
+    return {
+      success: true,
+      message: 'Si el email existe en nuestro sistema, recibirás un código de verificación.',
+      // Solo en desarrollo
+      ...(process.env.NODE_ENV === 'development' && { resetCode })
+    };
+  } catch (error) {
+    console.error('Error en forgot password:', error);
+    throw new Error('Error procesando solicitud de reset de contraseña');
+  }
+};
+
+export const resetPasswordWithCode = async ({ email, resetCode, newPassword }) => {
+  try {
+    // Buscar usuario por email
+    const user = await userRepo.findByPersonaEmail(email);
+    
+    if (!user) {
+      throw new Error('Email no encontrado');
+    }
+
+    // Verificar código y expiración
+    if (!user.resetPasswordCode || !user.resetPasswordExpires) {
+      throw new Error('No hay solicitud de reset activa para este email');
+    }
+
+    if (user.resetPasswordCode !== resetCode) {
+      throw new Error('Código de verificación inválido');
+    }
+
+    if (new Date() > user.resetPasswordExpires) {
+      throw new Error('El código de verificación ha expirado');
+    }
+
+    // Actualizar contraseña
+    user.password = newPassword;
+    
+    // Limpiar código de reset
+    user.resetPasswordCode = undefined;
+    user.resetPasswordExpires = undefined;
+    
+    // Resetear intentos de login
+    user.intentosLogin = 0;
+    user.bloqueadoHasta = undefined;
+    
+    await user.save();
+
+    return {
+      success: true,
+      message: 'Contraseña actualizada correctamente',
+      username: user.username
+    };
+  } catch (error) {
+    console.error('Error reseteando contraseña con código:', error);
+    if (error.message.includes('Email') || 
+        error.message.includes('Código') || 
+        error.message.includes('expirado') ||
+        error.message.includes('solicitud')) {
+      throw error;
+    }
+    throw new Error('Error reseteando contraseña');
+  }
+};
+
+export const resetPasswordSimple = async ({ email, newPassword }) => {
+  try {
+    // Buscar usuario por email
+    const user = await userRepo.findByPersonaEmail(email);
+    
+    if (!user) {
+      throw new Error('Email no encontrado');
+    }
+
+    // Actualizar contraseña directamente
+    user.password = newPassword;
+    
+    // Limpiar código de reset si existe
+    user.resetPasswordCode = undefined;
+    user.resetPasswordExpires = undefined;
+    
+    // Resetear intentos de login
+    user.intentosLogin = 0;
+    user.bloqueadoHasta = undefined;
+    
+    await user.save();
+
+    return {
+      success: true,
+      message: 'Contraseña actualizada correctamente',
+      username: user.username
+    };
+  } catch (error) {
+    console.error('Error reseteando contraseña simple:', error);
+    if (error.message.includes('Email')) {
+      throw error;
+    }
+    throw new Error('Error reseteando contraseña');
   }
 };

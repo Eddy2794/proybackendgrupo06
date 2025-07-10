@@ -62,7 +62,7 @@ export class AuthController {
 
   async loginDev(req, res, next) {
     try {
-      const result = await service.loginDev(req.body);
+      const result = await service.loginDev(req.body, req);
       return res.success('Login de desarrollo exitoso', {
         token: result.token,
         user: result.user
@@ -158,6 +158,68 @@ export class AuthController {
       const { userId } = req.user;
       const result = await service.removeProfileImage(userId);
       return res.success('Imagen de perfil eliminada exitosamente', result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async resetUserPassword(req, res, next) {
+    try {
+      const { userId: adminUserId } = req.user;
+      const { userId: targetUserId } = req.params;
+      const { newPassword } = req.body;
+      
+      const result = await service.resetUserPassword(targetUserId, adminUserId, newPassword);
+      return res.success(result.message, {
+        temporaryPassword: result.temporaryPassword,
+        username: result.username || 'Usuario'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async resetUserPasswordDev(req, res, next) {
+    try {
+      const { userId: adminUserId } = req.user;
+      const { userId: targetUserId } = req.params;
+      const { newPassword } = req.body;
+      
+      const result = await service.resetUserPasswordDev(targetUserId, adminUserId, newPassword);
+      return res.success(result.message, {
+        temporaryPassword: result.temporaryPassword,
+        username: result.username
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async forgotPassword(req, res, next) {
+    try {
+      const { email } = req.body;
+      const result = await service.forgotPassword(email);
+      return res.success(result.message, result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async resetPasswordWithCode(req, res, next) {
+    try {
+      const { email, resetCode, newPassword } = req.body;
+      const result = await service.resetPasswordWithCode({ email, resetCode, newPassword });
+      return res.success(result.message, { username: result.username });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async resetPasswordSimple(req, res, next) {
+    try {
+      const { email, newPassword } = req.body;
+      const result = await service.resetPasswordSimple({ email, newPassword });
+      return res.success(result.message, { username: result.username });
     } catch (error) {
       next(error);
     }

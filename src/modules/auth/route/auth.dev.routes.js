@@ -65,6 +65,15 @@ router.post('/change-password',
   authController.changePasswordDev
 );
 
+router.post('/reset-password/:userId', 
+  ensureDevEnvironment,
+  devLogger,
+  devRateLimit,
+  authMiddleware, 
+  devSecurityBypass,
+  authController.resetUserPasswordDev
+);
+
 // Documentación automática para rutas de desarrollo
 const authDevValidators = {
   registerDevSchema,
@@ -90,6 +99,11 @@ const authDevRouteConfigs = [
     description: 'Cambia la contraseña del usuario en entorno de desarrollo',
     auth: true,
     response: 'Contraseña actualizada correctamente'
+  }),
+  routeConfig('POST', '/reset-password/:userId', null, 'Resetear contraseña (Desarrollo)', {
+    description: 'Permite a un administrador resetear la contraseña de otro usuario en desarrollo',
+    auth: true,
+    response: 'Contraseña reseteada correctamente'
   })
 ];
 

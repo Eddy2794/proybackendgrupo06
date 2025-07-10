@@ -276,6 +276,198 @@ class MercadoPagoService {
   }
 
   /**
+   * Crea un pago QR para mostrar en pantalla
+   */
+  async crearPagoQR(usuarioId, categoriaId, tipoPago, periodo = null) {
+    try {
+      // Validar y obtener datos
+      const categoria = await Categoria.findById(categoriaId);
+      if (!categoria) {
+        const err = new Error('Categoría no encontrada');
+        err.statusCode = 404;
+        throw err;
+      }
+
+      let montoFinal, descripcion, externalReference, nuevoPago;
+
+      if (tipoPago === 'cuota') {
+        // Verificar si ya existe un pago para este período
+        const pagoExistente = await this.verificarPagoExistente(usuarioId, categoriaId, periodo);
+        if (pagoExistente) {
+          const err = new Error(`Ya existe un pago para el período ${periodo.mes}/${periodo.anio}`);
+          err.statusCode = 409;
+          err.code = 'PAGO_DUPLICADO_PERIODO';
+          throw err;
+        }
+
+        montoFinal = categoria.precio.cuotaMensual;
+        descripcion = `Cuota ${periodo.mes}/${periodo.anio} - ${categoria.nombre}`;
+        externalReference = this.generarReferenciaExterna(usuarioId, 'CUOTA', periodo);
+
+        // Crear registro de pago en la base de datos
+        nuevoPago = new Pago({
+          usuario: usuarioId,
+          categoria: categoriaId,
+          tipo: 'PAGO_CUOTA',
+          periodo: periodo,
+          montos: {
+            original: montoFinal,
+            descuentos: 0,
+            final: montoFinal,
+            comision: 0
+          },
+          estado: 'PENDIENTE',
+          mercadoPago: {
+            status: 'PENDIENTE',
+            externalReference,
+            description: descripcion,
+            urls: mercadoPagoConfig.getUrls(),
+            metodoPago: 'QR'
+          },
+          auditoria: {
+            creadoPor: usuarioId
+          }
+        });
+
+      } else if (tipoPago === 'anual') {
+        const anio = periodo?.anio || new Date().getFullYear();
+        
+        // Verificar si ya existe un pago anual para este año
+        const pagoExistente = await Pago.findOne({
+          usuario: usuarioId,
+          categoria: categoriaId,
+          'periodo.anio': anio,
+          tipo: 'PAGO_ANUAL',
+          estado: { $in: ['PENDIENTE', 'APROBADO', 'EN_PROCESO'] },
+          deletedAt: null
+        });
+        if (pagoExistente) {
+          const err = new Error(`Ya existe un pago anual para el año ${anio}`);
+          err.statusCode = 409;
+          err.code = 'PAGO_DUPLICADO_ANUAL';
+          throw err;
+        }
+
+        const montoAnualSinDescuento = categoria.precio.cuotaMensual * 12;
+        const descuentoAnual = categoria.precio.descuentos?.pagoAnual || 10;
+        const descuento = montoAnualSinDescuento * descuentoAnual / 100;
+        montoFinal = montoAnualSinDescuento - descuento;
+        descripcion = `Pago Anual ${anio} - ${categoria.nombre} (${descuentoAnual}% desc.)`;
+        externalReference = this.generarReferenciaExterna(usuarioId, 'ANUAL', { anio });
+
+        // Crear registro de pago en la base de datos
+        nuevoPago = new Pago({
+          usuario: usuarioId,
+          categoria: categoriaId,
+          tipo: 'PAGO_ANUAL',
+          periodo: { mes: 1, anio },
+          montos: {
+            original: montoAnualSinDescuento,
+            descuentos: descuento,
+            final: montoFinal,
+            comision: 0
+          },
+          estado: 'PENDIENTE',
+          mercadoPago: {
+            status: 'PENDIENTE',
+            externalReference,
+            description: descripcion,
+            urls: mercadoPagoConfig.getUrls(),
+            metodoPago: 'QR'
+          },
+          auditoria: {
+            creadoPor: usuarioId
+          }
+        });
+      }
+
+      await nuevoPago.save();
+
+      // Obtener email del usuario
+      let userEmail = 'usuario@example.com';
+      try {
+        const user = await userService.getUser(usuarioId);
+        if (user) userEmail = user.persona?.email;
+      } catch (e) {
+        logger.warn('No se pudo obtener el email real del usuario para QR', { usuarioId, error: e.message });
+      }
+
+      // Crear preferencia especial para QR
+      const preferenceData = {
+        items: [{
+          title: descripcion,
+          description: `Pago con QR - ${descripcion}`,
+          quantity: 1,
+          unit_price: montoFinal,
+          currency_id: 'ARS'
+        }],
+        payer: {
+          email: userEmail
+        },
+        external_reference: externalReference,
+        back_urls: mercadoPagoConfig.getUrls(),
+        notification_url: mercadoPagoConfig.getUrls().webhook,
+        metadata: {
+          usuario_id: usuarioId.toString(),
+          categoria_id: categoriaId.toString(),
+          pago_id: nuevoPago._id.toString(),
+          tipo_pago: tipoPago.toUpperCase(),
+          metodo_pago: 'QR',
+          periodo: tipoPago === 'cuota' ? `${periodo.mes}/${periodo.anio}` : periodo?.anio?.toString()
+        },
+        payment_methods: {
+          excluded_payment_types: [
+            { id: "credit_card" },
+            { id: "debit_card" },
+            { id: "bank_transfer" }
+          ],
+          excluded_payment_methods: [],
+          installments: 1
+        },
+        expires: true,
+        expiration_date_from: new Date().toISOString(),
+        expiration_date_to: new Date(Date.now() + 30 * 60 * 1000).toISOString() // 30 minutos
+      };
+
+      const preference = await this.preferenceAPI.create({ body: preferenceData });
+
+      // Actualizar el pago con el ID de la preferencia
+      nuevoPago.mercadoPago.preferenceId = preference.id;
+      await nuevoPago.save();
+
+      logger.info('Pago QR creado exitosamente', {
+        preferenceId: preference.id,
+        pagoId: nuevoPago._id,
+        usuario: usuarioId,
+        monto: montoFinal,
+        tipo: tipoPago
+      });
+
+      return {
+        preferenceId: preference.id,
+        pagoId: nuevoPago._id,
+        qrData: preference.qr_code,
+        initPoint: preference.init_point,
+        sandboxInitPoint: preference.sandbox_init_point,
+        monto: montoFinal,
+        categoria: categoria.nombre,
+        descripcion,
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutos
+        metodoPago: 'QR'
+      };
+
+    } catch (error) {
+      logger.error('Error creando pago QR', {
+        error: error.message,
+        usuario: usuarioId,
+        categoria: categoriaId,
+        tipo: tipoPago
+      });
+      throw error;
+    }
+  }
+
+  /**
    * Procesa las notificaciones webhook de MercadoPago
    */
   async procesarWebhook(headers, body, query) {
@@ -549,7 +741,31 @@ class MercadoPagoService {
    * Obtiene el historial de pagos de un usuario
    */
   async obtenerHistorialUsuario(usuarioId, filtros = {}) {
-    return await Pago.buscarPorUsuario(usuarioId, filtros);
+    console.log('🔍 MercadoPagoService.obtenerHistorialUsuario iniciado', {
+      usuarioId,
+      filtros,
+      timestamp: new Date().toISOString()
+    });
+    
+    try {
+      const resultado = await Pago.buscarPorUsuario(usuarioId, filtros);
+      
+      console.log('📊 Resultado de Pago.buscarPorUsuario', {
+        usuarioId,
+        tipoResultado: typeof resultado,
+        esArray: Array.isArray(resultado),
+        longitud: resultado?.length || 0
+      });
+      
+      return resultado;
+    } catch (error) {
+      console.error('❌ Error en obtenerHistorialUsuario', {
+        usuarioId,
+        error: error.message,
+        stack: error.stack
+      });
+      throw error;
+    }
   }
 
   /**

@@ -34,3 +34,55 @@ export const changePasswordSchema = Joi.object({
   newPassword: Joi.string().min(6).required(),
   confirmPassword: Joi.string().valid(Joi.ref('newPassword')).required()
 });
+
+export const resetPasswordSchema = Joi.object({
+  newPassword: Joi.string().min(6).optional()
+    .messages({
+      'string.min': 'La nueva contraseña debe tener al menos 6 caracteres'
+    })
+});
+
+export const forgotPasswordSchema = Joi.object({
+  email: Joi.string().email().required()
+    .messages({
+      'string.email': 'Debe proporcionar un email válido',
+      'any.required': 'El email es requerido'
+    })
+});
+
+export const resetPasswordWithTokenSchema = Joi.object({
+  email: Joi.string().email().required(),
+  resetCode: Joi.string().length(6).required()
+    .messages({
+      'string.length': 'El código debe tener exactamente 6 dígitos',
+      'any.required': 'El código de verificación es requerido'
+    }),
+  newPassword: Joi.string().min(6).required()
+    .messages({
+      'string.min': 'La nueva contraseña debe tener al menos 6 caracteres',
+      'any.required': 'La nueva contraseña es requerida'
+    }),
+  confirmPassword: Joi.string().valid(Joi.ref('newPassword')).required()
+    .messages({
+      'any.only': 'Las contraseñas no coinciden',
+      'any.required': 'Debe confirmar la nueva contraseña'
+    })
+});
+
+export const resetPasswordSimpleSchema = Joi.object({
+  email: Joi.string().email().required()
+    .messages({
+      'string.email': 'Debe proporcionar un email válido',
+      'any.required': 'El email es requerido'
+    }),
+  newPassword: Joi.string().min(6).required()
+    .messages({
+      'string.min': 'La nueva contraseña debe tener al menos 6 caracteres',
+      'any.required': 'La nueva contraseña es requerida'
+    }),
+  confirmPassword: Joi.string().valid(Joi.ref('newPassword')).required()
+    .messages({
+      'any.only': 'Las contraseñas no coinciden',
+      'any.required': 'Debe confirmar la nueva contraseña'
+    })
+});
