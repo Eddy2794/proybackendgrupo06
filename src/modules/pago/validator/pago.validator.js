@@ -60,6 +60,50 @@ export const validarCrearPagoAnual = [
     .withMessage('El año debe estar entre 2020 y 2100')
 ];
 
+// Validador para crear pago QR
+export const validarCrearPagoQR = [
+  body('categoriaId')
+    .notEmpty()
+    .withMessage('El ID de categoría es requerido')
+    .custom((value) => {
+      if (!mongoose.Types.ObjectId.isValid(value)) {
+        throw new Error('ID de categoría inválido');
+      }
+      return true;
+    }),
+  
+  body('tipoPago')
+    .notEmpty()
+    .withMessage('El tipo de pago es requerido')
+    .isIn(['cuota', 'anual'])
+    .withMessage('El tipo de pago debe ser "cuota" o "anual"'),
+  
+  body('periodo')
+    .optional()
+    .isObject()
+    .withMessage('El período debe ser un objeto'),
+  
+  body('periodo.mes')
+    .if(body('tipoPago').equals('cuota'))
+    .notEmpty()
+    .withMessage('El mes es requerido para pagos de cuota')
+    .isInt({ min: 1, max: 12 })
+    .withMessage('El mes debe ser un número entre 1 y 12'),
+  
+  body('periodo.anio')
+    .if(body('tipoPago').equals('cuota'))
+    .notEmpty()
+    .withMessage('El año es requerido para pagos de cuota')
+    .isInt({ min: 2020, max: 2100 })
+    .withMessage('El año debe estar entre 2020 y 2100'),
+  
+  body('periodo.anio')
+    .if(body('tipoPago').equals('anual'))
+    .optional()
+    .isInt({ min: 2020, max: 2100 })
+    .withMessage('El año debe estar entre 2020 y 2100')
+];
+
 // Validador para obtener pago por ID
 export const validarPagoId = [
   param('pagoId')

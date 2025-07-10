@@ -345,6 +345,12 @@ pagoSchema.methods.toJSON = function() {
 
 // Métodos estáticos
 pagoSchema.statics.buscarPorUsuario = function(usuarioId, opciones = {}) {
+  console.log('🔍 Pago.buscarPorUsuario iniciado', {
+    usuarioId,
+    opciones,
+    timestamp: new Date().toISOString()
+  });
+  
   const filtros = { usuario: usuarioId, deletedAt: null };
   
   if (opciones.estado) {
@@ -359,10 +365,41 @@ pagoSchema.statics.buscarPorUsuario = function(usuarioId, opciones = {}) {
     filtros['periodo.mes'] = opciones.mes;
   }
   
-  return this.find(filtros)
+  console.log('📋 Filtros construidos para la consulta', {
+    usuarioId,
+    filtros
+  });
+  
+  const query = this.find(filtros)
     .populate('categoria', 'nombre tipo precio')
     .populate('usuario', 'username persona')
     .sort({ 'auditoria.fechaCreacion': -1 });
+    
+  console.log('🔍 Query MongoDB construida', {
+    usuarioId,
+    queryString: query.getQuery()
+  });
+  
+  // Ejecutar la consulta y agregar logs
+  return query.exec().then(resultado => {
+    console.log('✅ Consulta MongoDB ejecutada exitosamente', {
+      usuarioId,
+      cantidadResultados: resultado?.length || 0,
+      primerosElementos: resultado?.slice(0, 2).map(p => ({
+        id: p._id,
+        estado: p.estado,
+        fechaCreacion: p.auditoria?.fechaCreacion
+      })) || []
+    });
+    return resultado;
+  }).catch(error => {
+    console.error('❌ Error ejecutando consulta MongoDB', {
+      usuarioId,
+      error: error.message,
+      stack: error.stack
+    });
+    throw error;
+  });
 };
 
 pagoSchema.statics.buscarPorPeriodo = function(anio, mes = null) {
