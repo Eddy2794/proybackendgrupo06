@@ -909,3 +909,128 @@ export const resetUserPasswordDev = async (targetUserId, adminUserId, newPasswor
     throw new Error('Error reseteando contraseña del usuario');
   }
 };
+
+export const forgotPassword = async (email) => {
+  try {
+    // Buscar usuario por email a través de la persona
+    const user = await userRepo.findByPersonaEmail(email);
+    
+    if (!user) {
+      // Por seguridad, no revelar si el email existe o no
+      return { 
+        success: true, 
+        message: 'Si el email existe en nuestro sistema, recibirás un código de verificación.' 
+      };
+    }
+
+    // Generar código de 6 dígitos
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Guardar el código con expiración de 15 minutos
+    user.resetPasswordCode = resetCode;
+    user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+    await user.save();
+
+    // En un entorno real, aquí enviarías el email
+    // Por ahora, log para desarrollo
+    console.log(`Código de reset para ${email}: ${resetCode}`);
+    
+    return {
+      success: true,
+      message: 'Si el email existe en nuestro sistema, recibirás un código de verificación.',
+      // Solo en desarrollo
+      ...(process.env.NODE_ENV === 'development' && { resetCode })
+    };
+  } catch (error) {
+    console.error('Error en forgot password:', error);
+    throw new Error('Error procesando solicitud de reset de contraseña');
+  }
+};
+
+export const resetPasswordWithCode = async ({ email, resetCode, newPassword }) => {
+  try {
+    // Buscar usuario por email
+    const user = await userRepo.findByPersonaEmail(email);
+    
+    if (!user) {
+      throw new Error('Email no encontrado');
+    }
+
+    // Verificar código y expiración
+    if (!user.resetPasswordCode || !user.resetPasswordExpires) {
+      throw new Error('No hay solicitud de reset activa para este email');
+    }
+
+    if (user.resetPasswordCode !== resetCode) {
+      throw new Error('Código de verificación inválido');
+    }
+
+    if (new Date() > user.resetPasswordExpires) {
+      throw new Error('El código de verificación ha expirado');
+    }
+
+    // Actualizar contraseña
+    user.password = newPassword;
+    
+    // Limpiar código de reset
+    user.resetPasswordCode = undefined;
+    user.resetPasswordExpires = undefined;
+    
+    // Resetear intentos de login
+    user.intentosLogin = 0;
+    user.bloqueadoHasta = undefined;
+    
+    await user.save();
+
+    return {
+      success: true,
+      message: 'Contraseña actualizada correctamente',
+      username: user.username
+    };
+  } catch (error) {
+    console.error('Error reseteando contraseña con código:', error);
+    if (error.message.includes('Email') || 
+        error.message.includes('Código') || 
+        error.message.includes('expirado') ||
+        error.message.includes('solicitud')) {
+      throw error;
+    }
+    throw new Error('Error reseteando contraseña');
+  }
+};
+
+export const resetPasswordSimple = async ({ email, newPassword }) => {
+  try {
+    // Buscar usuario por email
+    const user = await userRepo.findByPersonaEmail(email);
+    
+    if (!user) {
+      throw new Error('Email no encontrado');
+    }
+
+    // Actualizar contraseña directamente
+    user.password = newPassword;
+    
+    // Limpiar código de reset si existe
+    user.resetPasswordCode = undefined;
+    user.resetPasswordExpires = undefined;
+    
+    // Resetear intentos de login
+    user.intentosLogin = 0;
+    user.bloqueadoHasta = undefined;
+    
+    await user.save();
+
+    return {
+      success: true,
+      message: 'Contraseña actualizada correctamente',
+      username: user.username
+    };
+  } catch (error) {
+    console.error('Error reseteando contraseña simple:', error);
+    if (error.message.includes('Email')) {
+      throw error;
+    }
+    throw new Error('Error reseteando contraseña');
+  }
+};

@@ -194,6 +194,36 @@ export class AuthController {
       next(error);
     }
   }
+
+  async forgotPassword(req, res, next) {
+    try {
+      const { email } = req.body;
+      const result = await service.forgotPassword(email);
+      return res.success(result.message, result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async resetPasswordWithCode(req, res, next) {
+    try {
+      const { email, resetCode, newPassword } = req.body;
+      const result = await service.resetPasswordWithCode({ email, resetCode, newPassword });
+      return res.success(result.message, { username: result.username });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async resetPasswordSimple(req, res, next) {
+    try {
+      const { email, newPassword } = req.body;
+      const result = await service.resetPasswordSimple({ email, newPassword });
+      return res.success(result.message, { username: result.username });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const authController = new AuthController();

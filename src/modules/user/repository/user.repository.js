@@ -21,6 +21,18 @@ export const findByPersonaId = async (personaId) => {
     .populate('persona');
 };
 
+export const findByPersonaEmail = async (email) => {
+  return await User.findOne()
+    .populate({
+      path: 'persona',
+      match: { email: email }
+    })
+    .then(user => {
+      // Si la persona no coincide con el email, el populate devuelve null
+      return user && user.persona ? user : null;
+    });
+};
+
 export const findAll = async (filter = {}, options = {}) => {
   const { page = 1, limit = 10, sort = { createdAt: -1 } } = options;
   const skip = (page - 1) * limit;
