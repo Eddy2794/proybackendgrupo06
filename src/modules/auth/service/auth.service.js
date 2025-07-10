@@ -552,7 +552,7 @@ export const registerDev = async ({ personaData, username, password }) => {
   }
 };
 
-export const loginDev = async ({ username, password }) => {
+export const loginDev = async ({ username, password }, req = null) => {
   console.log('🚧 [DEV SERVICE] Login con contraseña en texto plano');
   
   // Verificar que estamos en desarrollo

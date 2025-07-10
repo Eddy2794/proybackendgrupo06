@@ -62,7 +62,7 @@ export class AuthController {
 
   async loginDev(req, res, next) {
     try {
-      const result = await service.loginDev(req.body);
+      const result = await service.loginDev(req.body, req);
       return res.success('Login de desarrollo exitoso', {
         token: result.token,
         user: result.user
